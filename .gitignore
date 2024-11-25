@@ -1,0 +1,7 @@
+*venv*
+Scripts/*
+Include/*
+Lib/*
+share/*
+etc/*
+__pycache__/*
