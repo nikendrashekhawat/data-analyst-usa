@@ -5,3 +5,4 @@ Lib/*
 share/*
 etc/*
 __pycache__/*
+*.toml
