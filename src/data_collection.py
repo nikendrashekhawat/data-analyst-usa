@@ -1,5 +1,6 @@
 import tomllib
 import kaggle
+from kaggle import KaggleApi
 
 class KaggleDataCollection():
     
@@ -17,20 +18,20 @@ class KaggleDataCollection():
     
     @property    
     def key(self):
-        return self._key
+        return self.__key
     
     @key.setter
     def key(self, new_key: str):
         self.__key = new_key
     
     
-    def __kaggle_auth0(self):
+    def __kaggle_auth0(self) -> KaggleApi:
         api = kaggle.api
         api.CONFIG_NAME_USER = self.__username
         api.CONFIG_NAME_KEY = self.__key
         return api
     
-    def get_kaggle_dataset(self, dataset: str, filename: str, path: str = "dataset/", force: bool = False):
+    def get_kaggle_dataset(self, dataset: str, filename: str, path: str = "dataset/", force: bool = False) -> None:
         api = self.__kaggle_auth0()
         api.dataset_download_file(
             dataset=dataset, 
@@ -49,8 +50,5 @@ if __name__ == "__main__":
     KAGGLE_APIKEY = configs["kaggle"]["key"]  
     
     kdc = KaggleDataCollection(KAGGLE_USERNAME, KAGGLE_APIKEY)
-    kdc.get_kaggle_dataset("lukebarousse/data-analyst-job-postings-google-search", "gsearch_jobs.csv")
-    print(kdc._username)
-    print(kdc._key)
-    kdc.get_kaggle_dataset
     
+    kdc.get_kaggle_dataset("lukebarousse/data-analyst-job-postings-google-search", "gsearch_jobs.csv")
