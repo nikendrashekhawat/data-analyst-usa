@@ -4,5 +4,6 @@ Include/*
 Lib/*
 share/*
 etc/*
+src/*pycache*
 __pycache__/*
 configs/*.toml
