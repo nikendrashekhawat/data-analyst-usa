@@ -1,3 +1,4 @@
+import os
 import tomllib
 import kaggle
 from kaggle import KaggleApi
@@ -31,12 +32,18 @@ class KaggleDataCollection():
         api.CONFIG_NAME_KEY = self.__key
         return api
     
-    def get_kaggle_dataset(self, dataset: str, filename: str, path: str = "dataset/", force: bool = False) -> None:
+    def get_kaggle_dataset(self, dataset: str, filename: str, dest_path: str = None, force: bool = False) -> None:
+        
+        if dest_path is None:
+            if not os.path.isdir("./dataset"):
+                os.mkdir("./dataset")
+            dest_path = "dataset/"
+                
         api = self.__kaggle_auth0()
         api.dataset_download_file(
             dataset=dataset, 
             file_name=filename,
-            path=path,
+            path=dest_path,
             force=force
             )
         return None
