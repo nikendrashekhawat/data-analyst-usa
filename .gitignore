@@ -7,3 +7,4 @@ etc/*
 src/*pycache*
 __pycache__/*
 configs/*.toml
+dataset/*
