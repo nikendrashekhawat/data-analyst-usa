@@ -5,6 +5,7 @@ Lib/*
 share/*
 etc/*
 src/*pycache*
+utils/*pycache*
 __pycache__/*
 configs/*.toml
 dataset/*
