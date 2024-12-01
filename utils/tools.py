@@ -1,6 +1,5 @@
 import re
 from nltk.tokenize import MWETokenizer
-
 from utils.reserved_keywords import (
     technical_skills,
     soft_skills,
@@ -42,7 +41,7 @@ def get_word_tokens(text: str) -> list[str]:
     
     filtered_tokens = [token for token in new_tokens if token in keywords] 
 
-    return list(set(filtered_tokens))
+    return str(set(filtered_tokens))
 
 
 
