@@ -1,6 +1,6 @@
 
 # Technical Skills with One WOrd Token
-technical_skills = [
+technical_tokens = [
     'agile',
     'scrum',
     'kanban',
@@ -11,6 +11,7 @@ technical_skills = [
     'python',
     'r',
     'c',
+    'c lang',
     'c++',
     'c#',
     'c sharp',
@@ -24,6 +25,7 @@ technical_skills = [
     'arcgis',
     'kpi',
     'dashboard',
+    'dashboards',
     'kpis',
     'statistics',
     'probability',
@@ -42,7 +44,6 @@ technical_skills = [
     'bash',
     'devops',
     'mlops',
-    'ci/cd',
     'containerization',
     'docker',
     'kubernetes',
@@ -53,13 +54,13 @@ technical_skills = [
     'gitlab',
     'cml',
     'dvc',
-    'monitoring',
     'logging',
     'aws',
     'azure',
     'gcp',
     'cro',
     'mysql',
+    'nosql',
     'postgresql',
     'oracle',
     'mongodb',
@@ -83,6 +84,7 @@ technical_skills = [
     'plotly',
     'bokeh',
     'altair',
+    'scikit learn',
     'xgboost',
     'lightgbm',
     'tensorflow',
@@ -91,9 +93,9 @@ technical_skills = [
     'tfx',
     'nltk',
     'spacy',
+    'kafka',
     'gensim',
     'beautifulsoup4',
-    'requests',
     'scrapy',
     'pyspark',
     'dask',
@@ -115,7 +117,7 @@ technical_skills = [
     'os',
     'sys',
     'logging',
-    're',
+    'regular expression',
     'streamlit',
     'dplyr',
     'ggplot2',
@@ -147,15 +149,7 @@ technical_skills = [
     'chatgpt',
     'copilot',
     'gemini',
-    'claude'
-]
-
-
-
-# Technical skills with Multi Words Expression
-technical_mwe = [
-    'business intelligence',
-    'swot analysis',
+    'claude',
     'data visualization',
     'power bi',
     'data intelligence',
@@ -165,15 +159,9 @@ technical_mwe = [
     'statistical analysis',
     'time series analysis',
     'geo spatial analysis',
-    'google earth engine', 
-    'data reporting',
+    'google earth engine',
     'pivot tables',
-    'data warehousing',
-    'microsoft excel',
-    'ms excel',
-    'microsoft powerpoint',
-    'ms powerpoint',
-    'business intelligence',
+    'data warehouse',
     'bi tools',
     'scripting language',
     'shell scripting',
@@ -181,11 +169,8 @@ technical_mwe = [
     'web scraping',
     'relational databases',
     'nosql databases',
-    'data driven decision',
-    'data driven insights',
     'data modeling',
     'complex modeling',
-    'data governance',
     'data strategy',
     'data architecture',
     'etl processes',
@@ -212,6 +197,7 @@ technical_mwe = [
     'statistical methods',
     'regression analysis',
     'dimensionality reduction',
+    'model testing',
     'model training',
     'model evaluation',
     'hyperparameter tuning',
@@ -221,12 +207,18 @@ technical_mwe = [
     'reinforcement learning',
     'linear regression',
     'logistic regression',
+    'decision tree regression',
+    'random forest',
+    'k nearest neighbors',
+    'kmeans clustering',
+    'pca',
     'feature engineering',
     'feature selection',
     'data preprocessing',
     'algorithm development',
     'model deployment',
     'ml pipelines',
+    'ci cd',
     'continuous integration',
     'continuous deployment',
     'model monitoring',
@@ -249,6 +241,7 @@ technical_mwe = [
     'hypothesis testing',
     'conversion rate optimization',
     'data pipeline',
+    'data pipelines',
     'data integration',
     'data lake',
     'data warehouse',
@@ -259,31 +252,25 @@ technical_mwe = [
     'apache flink',
     'aws glue',
     'data orchestration',
-    'data governance',
-    'data quality',
-    'data catalog',
     'data dictionary',
-    'data table',
     'etl development',
     'data extraction',
     'data transformation',
     'data loading',
     'sql server',
     'data mapping',
-    'data staging',
     'data mart',
-    'data lineage',
+    'data marts',
     'job scheduling',
     'workflow automation',
     'data pipeline monitoring',
     'data cleansing',
-    'scikit learn'
 ]
 
 
 
-# Soft Skills with One Word Token
-soft_skills = [
+# Soft skill tokens
+soft_skills_tokens = [
     'adaptability',
     'creativity',
     'leadership',
@@ -297,21 +284,14 @@ soft_skills = [
     'innovation',
     'dependability',
     'collaboration',
-    'programming',
-    'coding',
-    'devops',
     'scrum',
     'kanban',
     'documentation',
     'benchmarking',
     'forecasting',
-    'sustainability'
-]
-
-
-
-# Soft Skills with Multi Words Expression
-soft_skills_mwe = [
+    'sustainability',
+    'presentation',
+    'data presentation',
     'communication skills',
     'team collaboration',
     'problem solving',
@@ -332,26 +312,15 @@ soft_skills_mwe = [
     'organizational skills',
     'analytical thinking',
     'analytical skills',
-    'technical skills',
     'data interpretation',
-    'data analysis',
     'data reporting',
-    'quantitative analysis',
-    'qualitative analysis',
     'business analytics',
+    'business intelligence',
     'market research',
     'data management',
     'data governance',
-    'data integration',
     'data security',
     'data privacy',
-    'statistical modeling',
-    'software development',
-    'system design',
-    'it infrastructure',
-    'cloud infrastructure',
-    'continuous integration',
-    'continuous deployment',
     'agile methodology',
     'stakeholder management',
     'client interaction',
@@ -359,7 +328,6 @@ soft_skills_mwe = [
     'user interface',
     'technical writing',
     'business process improvement',
-    'financial analysis',
     'risk management',
     'cost management',
     'resource management',
@@ -377,34 +345,17 @@ soft_skills_mwe = [
 
 
 
-# Education requirement tokens with One Word
-education_requirement = [
+# Education requirement tokens
+education_tokens = [
     'bachelors',
     'bachelor',
     'masters',
     'master',
     'phd',
     'doctorate',
-    'it',
-    'cs',
-    'bs',
-    'ba',
-    'mathematics',
-    'maths',
-    'engineering',
-    'finance',
-    'economics',
-    'physics',
-    'electronics',
     'certification',
     'diploma',
-    'postgraduate'
-]
-
-
-
-# Education Requirement with MWE
-education_mwe = [
+    'postgraduate',
     "bachelor's degree",
     'bachelor degree',
     'bachelors degree',
@@ -417,9 +368,6 @@ education_mwe = [
     'b a degree',
     'information technology',
     'computer science',
-    'data science',
-    'higher education',
-    'formal education',
     'accredited university',
     'professional certificate',
     'technical degree',

@@ -1,5 +1,5 @@
 import os
-import tomllib
+from pathlib import Path
 import kaggle
 from kaggle import KaggleApi
 
@@ -8,6 +8,7 @@ class KaggleDataCollection():
     def __init__(self, username: str, key: str):
         self.__username = username
         self.__key = key
+        self.__datapath = None
         
     @property    
     def username(self):
@@ -46,16 +47,22 @@ class KaggleDataCollection():
             path=dest_path,
             force=force
             )
+        self.__datapath = Path(".").resolve()/ Path("dataset") / filename
         return None
 
+        
+    def data_downloaded_filepath(self) -> Path | None:
+        return self.__datapath
+
 if __name__ == "__main__":
+    pass
     
-    with open("configs/cfg.toml", "rb") as cfg:
-        configs = tomllib.load(cfg)
+    # with open("configs/cfg.toml", "rb") as cfg:
+    #     configs = tomllib.load(cfg)
     
-    KAGGLE_USERNAME = configs["kaggle"]["username"]
-    KAGGLE_APIKEY = configs["kaggle"]["key"]  
+    # KAGGLE_USERNAME = configs["kaggle"]["username"]
+    # KAGGLE_APIKEY = configs["kaggle"]["key"]  
     
-    kdc = KaggleDataCollection(KAGGLE_USERNAME, KAGGLE_APIKEY)
+    # kdc = KaggleDataCollection(KAGGLE_USERNAME, KAGGLE_APIKEY)
     
-    kdc.get_kaggle_dataset("lukebarousse/data-analyst-job-postings-google-search", "gsearch_jobs.csv")
+    # kdc.get_kaggle_dataset("lukebarousse/data-analyst-job-postings-google-search", "gsearch_jobs.csv")

@@ -9,3 +9,6 @@ utils/*pycache*
 __pycache__/*
 configs/*.toml
 dataset/*
+.i*
+*/*.csv
+

@@ -1,48 +1,92 @@
-import re
+from typing import Union
+import numpy as np
+import pandas as pd
+from typing import Callable
 from nltk.tokenize import MWETokenizer
 from utils.reserved_keywords import (
-    technical_skills,
-    soft_skills,
-    technical_mwe,
-    soft_skills_mwe,
-    education_requirement,
-    education_mwe
+    technical_tokens,
+    soft_skills_tokens,
+    education_tokens,
 )
 
+
+technical_tokens_arr = np.array(technical_tokens, dtype=np.str_)
+softskills_tokens_arr = np.array(soft_skills_tokens, dtype=np.str_)
+educational_tokens_arr = np.array(education_tokens, dtype=np.str_)
+
 # Combine all multi-word expressions (MWEs) and keywords
-combined_mwes = technical_mwe + soft_skills_mwe + education_mwe
-keywords = set(combined_mwes + technical_skills + soft_skills + education_requirement)
+all_keywords = np.unique(np.concatenate([technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr]))
 
 # Translation table for replacing punctuation with whitespace
 punctuations = "!$%'(),-./:;?[\\]^_`{|}"
 translate_table = str.maketrans(punctuations, ' ' * len(punctuations))
 
-
 # Tokenize MWEs
-mwes = [tuple(phrase.split()) for phrase in combined_mwes]
+mwes = [tuple(phrase.split()) for phrase in all_keywords if ' ' in phrase]
 mwe_tokenizer = MWETokenizer(mwes=mwes, separator=' ')
 
 #Function to remove punctuation
-remove_punctuation = lambda text: text.translate(translate_table)
+remove_punctuation: Callable[[str], str] = lambda text: text.translate(translate_table)
 
-# Function to remove extra spaces
-remove_extra_spaces = lambda text: re.sub(r'\s+', ' ', text).strip()
-   
 
-def get_word_tokens(text: str) -> list[str]:
-    
+
+def get_word_tokens(text: str, tokenizer: MWETokenizer = mwe_tokenizer, keywords: np.ndarray[np.str_] = all_keywords):
     text = remove_punctuation(text)
-    text = remove_extra_spaces(text)
-    text = text.lower()
-    
     tokens = text.split()
+    tokens = np.array(tokens, dtype=np.str_)
+    if tokens is None:
+        return pd.NA
+    else:
+        tokens = np.strings.strip(tokens)
+        tokens = np.strings.lower(tokens)
+        tokens = tokens.tolist()
+        new_tokens = tokenizer.tokenize(tokens)
+        new_tokens = np.array(new_tokens, dtype=np.str_)
+        filtered_tokens = new_tokens[np.isin(new_tokens, all_keywords)]
+        if not np.any(filtered_tokens):
+            return pd.NA
+        else: 
+            return np.unique(filtered_tokens)
+        
+        
+                    
+def get_technical_tokens(tokens_array):
     
-    new_tokens = mwe_tokenizer.tokenize(tokens)
+    if tokens_array is pd.NA:
+        return pd.NA
+    filtered_tokens = tokens_array[np.isin(tokens_array, technical_tokens_arr)]
     
-    filtered_tokens = [token for token in new_tokens if token in keywords] 
+    if not np.any(filtered_tokens):
+        return pd.NA
+    else:
+        return filtered_tokens
+    
 
-    return str(set(filtered_tokens))
 
+def get_softskills_tokens(tokens_array):
+    if tokens_array is pd.NA :
+        return pd.NA
+    
+    filtered_tokens = tokens_array[np.isin(tokens_array, softskills_tokens_arr)]
+    
+    if not np.any(filtered_tokens):
+        return pd.NA
+    else:
+        return filtered_tokens
+
+
+
+def get_educational_tokens(tokens_array):
+    if tokens_array is pd.NA:
+        return pd.NA
+    
+    filtered_tokens = tokens_array[np.isin(tokens_array, education_tokens)]
+    
+    if not np.any(filtered_tokens):
+        return pd.NA
+    else:
+        return filtered_tokens
+    
 
 
 
