@@ -1,4 +1,9 @@
 *venv*
+bin/*
+include/*
+lib/*
+lib64/*
+*.cfg
 Scripts/*
 Include/*
 Lib/*
