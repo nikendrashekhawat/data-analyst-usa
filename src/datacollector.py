@@ -21,7 +21,7 @@ class KaggleDataCollection():
             path=dest_path,
             force=force
             )
-        self._datapath = Path(".").resolve()/ Path("dataset") / filename
+        self._datapath = Path(".").resolve()/ Path(dest_path) / filename
         return None
 
         
@@ -35,5 +35,3 @@ if __name__ == "__main__":
     file = "gsearch_jobs.csv"
     kdc = KaggleDataCollection()
     kdc.get_kaggle_dataset(dataset=dataset, filename=file)
-    print(kdc.username)
-    print(kdc.key)
