@@ -52,7 +52,6 @@ class DataCleaner():
             tokens = np.array(tokens, dtype=np.str_)
         else: 
             tokens = pd.NA
-        
         return tokens
         
     
@@ -63,13 +62,12 @@ class DataCleaner():
         return self 
     
     
-    def split_tokens(self, cols: str, filter_with: list[np.ndarray] = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr], expand: bool = False):
+    def split_tokens(self, col: str, filter_with: list[np.ndarray] = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr], expand: bool = False):
         new_cols = len(filter_with)
         cols_name = ["arr_"+ str(i) for i in range(new_cols)]
-        for index in range(new_cols):
-            cols_name[index] = self.filter_tokens()
-        if tokens_array is pd.NA :
-            return pd.NA
+        for index, fil_arr in zip(range(new_cols), filter_with):
+            cols_name[index] = self.df[col].apply(self.filter_tokens, args=(fil_arr,))
+        
         self.df[col]
         
         
@@ -93,6 +91,9 @@ class DataCleaner():
 
     def get_cleaned_data(self) -> pd.DataFrame:
         return self.df
+    
+if __name__ == '__main__':
+    
 
         
     
