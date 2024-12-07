@@ -71,16 +71,11 @@ class DataCleaner():
             filter_with: list[np.ndarray] = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr],
             expand: bool = False
         ) -> pd.DataFrame:
-
         new_cols = len(filter_with)
-        print("NEW COLS", new_cols)
         cols_name = ["arr_"+ str(i) for i in range(new_cols)]
-        print("COLS NAME", cols_name)
         frame = {arr: self.df[col].apply(self.filter_tokens, args=(fil_arr,)) for arr, fil_arr in zip(cols_name, filter_with)}
-    
         if expand:
             return pd.concat([self.df, pd.DataFrame(frame)], axis=1)
-            
         return pd.DataFrame(frame)
         
         
