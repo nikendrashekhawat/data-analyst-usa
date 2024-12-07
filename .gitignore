@@ -12,6 +12,8 @@ share/
 etc/
 src/*pycache*
 src/*ipynb
+src/*checkpo*/
+notebook/
 utils/*pycache*
 __pycache__/
 configs/*.toml
