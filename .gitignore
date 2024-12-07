@@ -11,6 +11,7 @@ Lib/
 share/
 etc/
 src/*pycache*
+src/*ipynb
 utils/*pycache*
 __pycache__/
 configs/*.toml
