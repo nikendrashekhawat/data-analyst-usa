@@ -1,4 +1,3 @@
-from typing import Union
 import numpy as np
 import pandas as pd
 from typing import Callable
@@ -37,12 +36,12 @@ def get_word_tokens(text: str, tokenizer: MWETokenizer = mwe_tokenizer, keywords
     if tokens is None:
         return pd.NA
     else:
-        tokens = np.strings.strip(tokens)
-        tokens = np.strings.lower(tokens)
+        tokens = np.char.strip(tokens)
+        tokens = np.char.lower(tokens)
         tokens = tokens.tolist()
         new_tokens = tokenizer.tokenize(tokens)
-        new_tokens = np.array(new_tokens, dtype=np.str_)
-        filtered_tokens = new_tokens[np.isin(new_tokens, all_keywords)]
+        new_tokens = np.array(new_tokens)
+        filtered_tokens = new_tokens[np.isin(new_tokens, keywords)]
         if not np.any(filtered_tokens):
             return pd.NA
         else: 
