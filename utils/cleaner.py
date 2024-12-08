@@ -7,16 +7,17 @@ from reserved_keywords import (
     education_tokens,
 )
 
-#Global Variable
-technical_tokens_arr = np.array(technical_tokens, dtype=np.str_)
-softskills_tokens_arr = np.array(soft_skills_tokens, dtype=np.str_)
-educational_tokens_arr = np.array(education_tokens, dtype=np.str_)
+# Global Variable
 
-# Combine all keywords__all__ = ['tools']
+# Arrays storing reserved keywords for specific categories
+technical_tokens_arr = np.array(technical_tokens, dtype=np.str_)     # Technical skills keywords
+softskills_tokens_arr = np.array(soft_skills_tokens, dtype=np.str_)  # Soft skills keywords
+educational_tokens_arr = np.array(education_tokens, dtype=np.str_)   # Education-related keywords
 
+# Combined keywords from all categories and filter out only unique keywords
 all_keywords = np.unique(np.concatenate([technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr]))
 
-#Filtering multi word expressions
+# Multi-word expressions extracted from keywords for tokenization
 mwes = [tuple(phrase.split()) for phrase in all_keywords if ' ' in phrase]
 
 
@@ -199,7 +200,7 @@ class DataCleaner():
         Creates a new column containing tokenized and filtered words based on 
         the provided keywords.
         
-        Remove the actual column after tokenizing it.
+        Remove the actual column from passed dataframe after tokenizing it.
 
         Args:
         ----
@@ -362,7 +363,9 @@ class DataCleaner():
     def clean_schedule_type(
         self, 
         repl: dict= {'Temp work':'Temporary', ',':'', 'Per diem':'Per-diem', 'and':''}):
-        self.df["schedule_type"] = self.df["schedule_type"].replace(repl)
+    
+        self.df['schedule_type'] = self.df['schedule_type'].replace(repl)
+        self.df['schedule_type'] = 
         
 
     def get_cleaned_data(self) -> pd.DataFrame:

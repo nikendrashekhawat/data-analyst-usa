@@ -163,6 +163,7 @@ technical_tokens = [
     'pivot tables',
     'data warehouse',
     'bi tools',
+    'google data studio',
     'scripting language',
     'shell scripting',
     'bash scripting',
