@@ -83,7 +83,6 @@ class DataCleaner():
         np.ndarray | pd.NA
             An array of tokenized words if successful, otherwise `pd.NA`.
         """
-        
         tokens = word_tokenize(text)
         tokens = np.array(tokens, dtype=np.str_)
         if tokens.size != 0:
@@ -132,12 +131,14 @@ class DataCleaner():
         ['title', 'company_name', 'location', 'via', 'description'].
 
         Args:
+        ----
             subset (list[str], optional): Columns to check for duplicates. 
                 Defaults to the predefined list of key columns.
             **kwargs: Additional arguments passed to `pandas.DataFrame.drop_duplicates`, 
                 such as `keep`, `inplace`, or `ignore_index`.
 
         Returns:
+        -------
             self: The current instance with duplicates removed from the DataFrame.
         """
         if subset is None:
@@ -155,10 +156,12 @@ class DataCleaner():
         'commute_time', 'search_location', 'description_tokens'].
 
         Args:
+        ----
             cols (list[str] | str, optional): Column name(s) to be removed. 
                 If not provided, defaults to the predefined list of columns.
 
         Returns:
+        --------
             self: The current instance with the specified columns removed from the DataFrame.
         """
         if cols is None:
@@ -226,36 +229,37 @@ class DataCleaner():
         return self 
     
     
-    def split_tokens(
-            self, 
-            col: str, 
-            filter_with: list[np.ndarray] = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr],
-            expand: bool= False
-        ) -> pd.DataFrame:
+    def split_tokens(self, col: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= False) -> pd.DataFrame:
         """
-        Splits tokens from a column into multiple new columns based on filter lists.
+        Splits the tokens in a specified column into multiple columns based on given token arrays.
 
         Args:
         ----
         col : str
-            The name of the column containing tokens to be split.
-
-        filter_with : list[np.ndarray]
-            A list of arrays representing token filters.
-
+            Column to process.
+                
+        filter_with : Optional[list[np.ndarray]], optional 
+            List of token arrays to filter the column's values.
+            Defaults to predefined arrays.
+                
         expand : bool, optional
-            If True, appends the new columns to the original DataFrame.
+            If True, adds the token columns to the original DataFrame. 
+            If False, returns a new DataFrame with token columns. Defaults to False.
 
         Returns:
         -------
-        pd.DataFrame
-            The updated DataFrame with new columns or a DataFrame with split tokens.
+        pd.DataFrame : 
+            A new DataFrame with filtered token columns or the original DataFrame 
+            with added columns if `expand` is True.
         """
+        if filter_with is None:
+            filter_with = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr]
         new_cols = len(filter_with)
         cols_name = ["arr_"+ str(i) for i in range(new_cols)]
         frame = {arr: self.df[col].apply(self._filter_tokens, args=(fil_arr,)) for arr, fil_arr in zip(cols_name, filter_with)}
         if expand:
-            return pd.concat([self.df, pd.DataFrame(frame)], axis=1)
+            pd.concat([self.df, pd.DataFrame(frame)], axis=1)
+            return self
         return pd.DataFrame(frame)
 
 
@@ -292,7 +296,7 @@ class DataCleaner():
         return self    
     
     
-    def clean_location(self, fillna_val= 'Remote USA only', repl: dict= {'Anywhere': 'Remote Anywhere'}, expand = True):
+    def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand = True):
         """
         Cleans and standardizes the location column.
 
@@ -315,6 +319,8 @@ class DataCleaner():
         DataCleaner
             The modified instance for method chaining.
         """
+        if repl is None:
+            repl = {'Anywhere': 'Remote Anywhere'}
         self.df['location'] = self.df['location'].str.strip()
         self.df['location'] = self.df['location'].fillna(fillna_val)
         self.df['location'] = self.df['location'].mask(self.df['location'].str.contains('United States'), other='Remote USA only')
