@@ -19,6 +19,7 @@ technical_tokens = [
     'javascript',
     'cuda',
     'sap',
+    'salesforce',
     'tableau',
     'looker',
     'qgis',

@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 import pandas as pd
 from nltk.tokenize import word_tokenize, MWETokenizer
@@ -128,18 +129,26 @@ class DataCleaner():
         return pd.NA
 
     
-    def remove_duplicates(self):
+    def remove_duplicates(self, subset: Optional[list[str]] =None, **kwargs):
         """
-        Removes duplicate rows from the DataFrame.
+        Removes duplicate rows from the DataFrame based on specified columns.
 
-        This method modifies the DataFrame by removing any duplicate rows.
+        If no columns are specified, the method uses a default list of columns:
+        ['title', 'company_name', 'location', 'via', 'description'].
+
+        Args:
+            subset (list[str], optional): Columns to check for duplicates. 
+                Defaults to the predefined list of key columns.
+            **kwargs: Additional arguments passed to `pandas.DataFrame.drop_duplicates`, 
+                such as `keep`, `inplace`, or `ignore_index`.
 
         Returns:
-        -------
-        DataCleaner
-            The modified instance for method chaining.
+            self: The current instance with duplicates removed from the DataFrame.
         """
-        self.df = self.df.drop_duplicates()
+        if subset is None:
+            subset = ['title', 'company_name', 'location', 'via', 'description']
+            
+        self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
         
         return self
 
@@ -148,25 +157,26 @@ class DataCleaner():
         """
         Removes specified columns from the DataFrame.
 
-        If no columns are provided, the DataFrame remains unchanged.
+        If no columns are specified, a default list of columns is removed:
+        ['index', 'thumbnail', 'posted_at', 'job_id', 'search_term', 
+        'commute_time', 'search_location', 'description_tokens'].
 
         Args:
-        ----
-        cols : list[str] | str, optional
-            A list of column names to be removed. If not provided, no columns are removed.
+            cols (list[str] | str, optional): Column name(s) to be removed. 
+                If not provided, defaults to the predefined list of columns.
 
         Returns:
-        -------
-        DataCleaner
-            The modified instance for method chaining.
+            self: The current instance with the specified columns removed from the DataFrame.
         """
-        if cols is not None:
-            self.df = self.df.drop(columns=cols)
+        if cols is None:
+            cols = ["index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", "search_location", "description_tokens"]
+        
+        self.df = self.df.drop(columns=cols)
             
         return self
 
         
-    def remove_punctuations(self, col: str, table: dict= None):
+    def remove_punctuations(self, col: str, table: Optional[dict]= None):
         """
         Removes punctuation from the specified column.
 
@@ -333,8 +343,9 @@ class DataCleaner():
             self.df['state'] = self.df['state'].fillna(self.df['city'])
             
         return self
+
     
-    def clean_via(self, fillna_val = None):
+    def clean_via(self, fillna_val: Optional[str] = None):
         """
         Cleans the 'via' column in the DataFrame.
 
@@ -360,12 +371,50 @@ class DataCleaner():
         
         return self
     
-    def clean_schedule_type(
-        self, 
-        repl: dict= {'Temp work':'Temporary', ',':'', 'Per diem':'Per-diem', 'and':''}):
     
-        self.df['schedule_type'] = self.df['schedule_type'].replace(repl)
-        self.df['schedule_type'] = 
+    def clean_schedule_type(self, repl: Optional[dict[str, str]] = None):
+        """
+        Cleans and standardizes the 'schedule_type' column in the DataFrame.
+
+        If no replacement dictionary is provided, a default mapping is used 
+        to standardize common schedule type values.
+
+        Default Replacement Dictionary:
+            {
+                'Temp work': 'Temporary',
+                'diem': 'Temporary',
+                'Intern': 'Internship',
+                'Volunteer': 'Volunteer',
+                'Contractor': 'Contract',
+                'Part-time': 'Part-time'
+            }
+
+        Missing values in 'schedule_type' are filled with 'Temporary'.
+
+        Args:
+            repl (dict[str, str], optional): A dictionary mapping substrings 
+                to replacement values. If not provided, the default mapping is used.
+
+        Returns:
+            self: The current instance with the 'schedule_type' column cleaned.
+        """
+        if repl is None:
+            repl = {
+            'Temp work':'Temporary', 
+            'diem':'Temporary',
+            'Intern': 'Internship',
+            'Volunteer':'Volunteer',
+            'Contractor':'Contract',
+            'Part-time':'Part-time'
+            }
+        series = self.df['schedule_type'].fillna('Temporary')
+        
+        for k, v in repl.items():
+            series = series.mask(series.str.contains(k), v)
+            
+        self.df['schedule_type'] = series
+        
+        return self
         
 
     def get_cleaned_data(self) -> pd.DataFrame:
@@ -385,8 +434,8 @@ if __name__ == '__main__':
     data = pd.read_csv("dataset/gsearch_jobs.csv", index_col=0)
     # ser = data["description_tokens"].head(50)
     dc = DataCleaner(data)
-    ex = dc.tokenize_column("description").split_tokens("description_tokens")
-    print(ex.head())
+    ex = dc.remove_duplicates().get_cleaned_data()
+    print(ex.tail())
 
         
     
