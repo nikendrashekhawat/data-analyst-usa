@@ -86,7 +86,6 @@ class DataCleaner():
         
         tokens = word_tokenize(text)
         tokens = np.array(tokens, dtype=np.str_)
-        
         if tokens.size != 0:
             tokens = np.char.strip(tokens)
             tokens = np.char.lower(tokens)
@@ -94,7 +93,6 @@ class DataCleaner():
             tokens = self._tokenizer.tokenize(tokens)
             tokens = np.array(tokens, dtype=np.str_)
             return tokens
-        
         return pd.NA
     
     
@@ -120,12 +118,9 @@ class DataCleaner():
         """
         if arr1 is pd.NA:
             return arr1
-        
         filtered_arr = arr1[np.isin(arr1, arr2)]
-        
         if filtered_arr.size != 0:
             return np.unique(filtered_arr)
-        
         return pd.NA
 
     
@@ -147,9 +142,7 @@ class DataCleaner():
         """
         if subset is None:
             subset = ['title', 'company_name', 'location', 'via', 'description']
-            
         self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
-        
         return self
 
 
@@ -170,9 +163,7 @@ class DataCleaner():
         """
         if cols is None:
             cols = ["index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", "search_location", "description_tokens"]
-        
         self.df = self.df.drop(columns=cols)
-            
         return self
 
         
@@ -197,9 +188,7 @@ class DataCleaner():
         """
         if table is None:
             table = self._translate_table
-            
         self.df[col] = self.df[col].str.translate(table)
-        
         return self
 
 
@@ -232,10 +221,8 @@ class DataCleaner():
         col_name = col+"_tokens"
         self.df[col_name] = self.df[col].apply(self._tokenize_words)
         self.df[col_name] = self.df[col_name].apply(self._filter_tokens, args=(filter_keywords,))
-        
         if after_mutate == 'drop':
             self.remove_columns(col)
-            
         return self 
     
     
@@ -298,12 +285,10 @@ class DataCleaner():
             The modified instance for method chaining.
         """
         self.df[col] = pd.to_datetime(self.df[col], **kwargs)
-        
         if expand:
             self.df[prefix+'_year'] = self.df[col].dt.year
             self.df[prefix+'_month'] = self.df[col].dt.month
             self.df[prefix+'_day'] = self.df[col].dt.day
-            
         return self    
     
     
@@ -335,13 +320,11 @@ class DataCleaner():
         self.df['location'] = self.df['location'].mask(self.df['location'].str.contains('United States'), other='Remote USA only')
         self.df['location'] = self.df['location'].replace(repl)
         self.df['location'] = self.df['location'].str.replace(r'\s*\(\+\d+\s+other[s]?\)', '', regex=True)
-        
         if expand:
             loc_frame = self.df["location"].str.rsplit(',', n=1, expand=True)
             self.df['city'] = loc_frame[0]
             self.df['state'] = loc_frame[1]
             self.df['state'] = self.df['state'].fillna(self.df['city'])
-            
         return self
 
     
@@ -363,12 +346,10 @@ class DataCleaner():
             The updated instance for method chaining.
         """
         if fillna_val is None:
-            fillna_val = self.df["via"].mode()[0]
-            
+            fillna_val = self.df["via"].mode()[0]  
         self.df["via"] = self.df["via"].fillna(fillna_val)
         self.df["via"] = self.df["via"].str.replace("via", "")
         self.df["via"] = self.df["via"].str.strip()
-        
         return self
     
     
@@ -408,12 +389,24 @@ class DataCleaner():
             'Part-time':'Part-time'
             }
         series = self.df['schedule_type'].fillna('Temporary')
-        
         for k, v in repl.items():
             series = series.mask(series.str.contains(k), v)
-            
         self.df['schedule_type'] = series
-        
+        return self
+    
+    def clean_work_from_home(self):
+        """
+        Cleans and updates the 'work_from_home' column based on the 'description' column.
+
+        This method checks if the 'description' column contains the phrase 
+        'work from home' (case-insensitive). If the 'work_from_home' column 
+        has missing values, it fills them using this check.
+
+        Returns:
+            self: The current instance with the 'work_from_home' column cleaned and updated.
+        """
+        mask = self.df["description"].str.lower().str.contains("work from home")
+        self.df["work_from_home"] = self.df["work_from_home"].fillna(mask)
         return self
         
 
