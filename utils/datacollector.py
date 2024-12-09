@@ -10,8 +10,12 @@ class KaggleDataCollection():
     the file path for further use.
 
     Attributes:
-        _api (KaggleApi): An instance of the Kaggle API client.
-        _datapath (Path | None): The file path of the last downloaded dataset file.
+    -----------    
+    _api : KaggleApi
+        An instance of the Kaggle API client.
+
+    _datapath: Path, or None
+        The file path of the last downloaded dataset file.
     """
     def __init__(self):
         self._api = KaggleApi()
@@ -27,14 +31,22 @@ class KaggleDataCollection():
         directory named 'dataset' in the current working directory.
 
         Args:
-            dataset (str): The Kaggle dataset in the format 'owner/dataset-name'.
-            filename (str): The name of the file to download from the dataset.
-            dest_path (str, optional): The destination directory path where the file 
-                should be saved. Defaults to None (creates 'dataset' folder).
-            force (bool, optional): Whether to force file download even if it exists.
-                Defaults to False.
+        ----
+        dataset : str
+            The Kaggle dataset in the format 'owner/dataset-name'.
+            
+        filename : str
+            The name of the file to download from the dataset.
+        
+        dest_path : str, optional 
+            The destination directory path where the file should be saved. 
+            Defaults to None (creates 'dataset' folder).
+        
+        force : bool, optional 
+            Whether to force file download even if it exists.Defaults to False.
 
         Returns:
+        -------
             None
         """
         dest_dir = Path(dest_path or "./dataset")
@@ -59,16 +71,11 @@ class KaggleDataCollection():
         Retrieves the file path of the last downloaded dataset file.
 
         Returns:
-            Path | None: The file path of the last downloaded file if available, 
-            otherwise None.
+        Path | None: 
+            The file path of the last downloaded file if available, otherwise None.
         """
         return self._datapath
 
 
 if __name__ == "__main__":
-
-    dataset = "lukebarousse/data-analyst-job-postings-google-search"
-    file = "gsearch_jobs.csv"
-    kdc = KaggleDataCollection()
-    kdc.get_kaggle_dataset(dataset=dataset, filename=file)
-    print(kdc.get_data_filepath())
+    pass

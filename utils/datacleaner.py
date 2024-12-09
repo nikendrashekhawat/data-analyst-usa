@@ -537,11 +537,6 @@ class DataCleaner():
 
 
 if __name__ == '__main__':
-    data = pd.read_csv("dataset/gsearch_jobs.csv", index_col=0)
-    # ser = data["description_tokens"].head(50)
-    dc = DataCleaner(data)
-    ex = dc.remove_duplicates().get_cleaned_data()
-    print(ex.tail())
-
+    pass
         
     
