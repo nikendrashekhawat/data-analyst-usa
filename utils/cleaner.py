@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 import numpy as np
 import pandas as pd
@@ -115,14 +116,48 @@ class DataCleaner():
         np.ndarray | pd.NA
             The filtered array of tokens or `pd.NA` if no tokens are found.
         """
-        if arr1 is pd.NA:
+        if pd.isna(arr1):
             return arr1
         filtered_arr = arr1[np.isin(arr1, arr2)]
         if filtered_arr.size != 0:
             return np.unique(filtered_arr)
         return pd.NA
-
     
+    
+    def _extract_salary(self, col: str= "description", salary_pattern = None) -> pd.Series:
+        """
+        Extracts salary ranges from a specified DataFrame column.
+
+        This method identifies salary ranges in the form of "min-max" where numbers 
+        may include commas or a 'K'/'k' for thousands. It formats matched salaries as
+        "min-max" if both values are present.
+
+        Args:
+        ----
+        col : str, optional
+            The DataFrame column to search for salary ranges. Defaults to "description".
+            
+        salary_pattern : str, optional
+            Custom regex pattern for extracting salary ranges. If not provided,
+            a default pattern is used. Default, `\d{1,3}(?:,\d{3})?(?:[Kk])?`
+
+        Returns:
+        -------
+        pd.Series: 
+            A Series with extracted and formatted salary ranges, or `pd.NA` if no match is found.
+        """
+        col = self.df[col].str.replace(r'\n', ' ', regex=True).str.replace(r'\s+', ' ', regex=True)
+        if salary_pattern is None:
+            number_pattern = r'\d{1,3}(?:,\d{3})?(?:[Kk])?'  # Matches numbers with optional commas or 'K|k'
+            salary_pattern = fr'({number_pattern})\s?[–-]\s?({number_pattern})'  # Matches salary ranges
+        salary = col.str.extract(salary_pattern, flags=re.IGNORECASE)
+        formatted_salary = salary.apply(
+            lambda x: f"{x[0]}-{x[1]}" if pd.notna(x[0]) and pd.notna(x[1]) else pd.NA, 
+            axis=1
+        )
+        return formatted_salary
+    
+        
     def remove_duplicates(self, subset: Optional[list[str]] =None, **kwargs):
         """
         Removes duplicate rows from the DataFrame based on specified columns.
@@ -132,14 +167,17 @@ class DataCleaner():
 
         Args:
         ----
-            subset (list[str], optional): Columns to check for duplicates. 
-                Defaults to the predefined list of key columns.
-            **kwargs: Additional arguments passed to `pandas.DataFrame.drop_duplicates`, 
-                such as `keep`, `inplace`, or `ignore_index`.
+        subset : list[str], optional
+            Columns to check for duplicates.Defaults to the predefined list of key columns.
+            
+        **kwargs: 
+            Additional arguments passed to `pandas.DataFrame.drop_duplicates`, 
+            such as `keep`, `inplace`, or `ignore_index`.
 
         Returns:
         -------
-            self: The current instance with duplicates removed from the DataFrame.
+        self: 
+            The current instance with duplicates removed from the DataFrame.
         """
         if subset is None:
             subset = ['title', 'company_name', 'location', 'via', 'description']
@@ -157,12 +195,14 @@ class DataCleaner():
 
         Args:
         ----
-            cols (list[str] | str, optional): Column name(s) to be removed. 
-                If not provided, defaults to the predefined list of columns.
+        cols :  list[str] or str, optional
+            Column name(s) to be removed.If not provided, defaults to the predefined 
+            list of columns.
 
         Returns:
         --------
-            self: The current instance with the specified columns removed from the DataFrame.
+         self: 
+            The current instance with the specified columns removed from the DataFrame.
         """
         if cols is None:
             cols = ["index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", "search_location", "description_tokens"]
@@ -379,11 +419,15 @@ class DataCleaner():
         Missing values in 'schedule_type' are filled with 'Temporary'.
 
         Args:
-            repl (dict[str, str], optional): A dictionary mapping substrings 
-                to replacement values. If not provided, the default mapping is used.
+        ----
+        repl : dict[str, str], optional
+            A dictionary mapping substrings to replacement values. 
+            If not provided, the default mapping is used.
 
         Returns:
-            self: The current instance with the 'schedule_type' column cleaned.
+        -------
+        self: 
+            The current instance with the 'schedule_type' column cleaned.
         """
         if repl is None:
             repl = {
@@ -400,6 +444,7 @@ class DataCleaner():
         self.df['schedule_type'] = series
         return self
     
+    
     def clean_work_from_home(self):
         """
         Cleans and updates the 'work_from_home' column based on the 'description' column.
@@ -409,7 +454,8 @@ class DataCleaner():
         has missing values, it fills them using this check.
 
         Returns:
-            self: The current instance with the 'work_from_home' column cleaned and updated.
+        self: 
+            The current instance with the 'work_from_home' column cleaned and updated.
         """
         mask = self.df["description"].str.lower().str.contains("work from home")
         self.df["work_from_home"] = self.df["work_from_home"].fillna(mask)
