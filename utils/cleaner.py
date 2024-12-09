@@ -67,6 +67,8 @@ class DataCleaner():
         self._tokenizer = MWETokenizer(mwes=mwes, separator=' ')
           
               
+
+
     def _tokenize_words(self, text: str) -> np.ndarray | pd._libs.missing.NAType:
         """
         Tokenizes a string into lowercase words after removing extra spaces.
@@ -95,6 +97,8 @@ class DataCleaner():
             return tokens
         return pd.NA
     
+
+
     
     def _filter_tokens(self, arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray | pd._libs.missing.NAType:
         """
@@ -105,7 +109,7 @@ class DataCleaner():
 
         Args:
         ----
-        arr1 : np.ndarray
+        arr1 : np.ndarray￼
             The array of tokens to filter.
 
         arr2 : np.ndarray
@@ -124,6 +128,8 @@ class DataCleaner():
         return pd.NA
     
     
+
+
     def _extract_salary(self, col: str= "description", salary_pattern = None) -> pd.Series:
         """
         Extracts salary ranges from a specified DataFrame column.
@@ -157,6 +163,8 @@ class DataCleaner():
         )
         return formatted_salary
     
+
+
         
     def remove_duplicates(self, subset: Optional[list[str]] =None, **kwargs):
         """
@@ -185,13 +193,16 @@ class DataCleaner():
         return self
 
 
+
+
     def remove_columns(self, cols: list[str] | str= None):
         """
         Removes specified columns from the DataFrame.
 
         If no columns are specified, a default list of columns is removed:
-        ['index', 'thumbnail', 'posted_at', 'job_id', 'search_term', 
-        'commute_time', 'search_location', 'description_tokens'].
+        ["index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", 
+        "search_location", "description_tokens", 'salary', 'salary_rate', 
+        'salary_avg', 'salary_hourly', 'salary_yearly']
 
         Args:
         ----
@@ -205,9 +216,15 @@ class DataCleaner():
             The current instance with the specified columns removed from the DataFrame.
         """
         if cols is None:
-            cols = ["index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", "search_location", "description_tokens"]
+            cols = [
+                "index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", 
+                "search_location", "description_tokens", 'salary', 'salary_rate', 
+                'salary_avg', 'salary_hourly', 'salary_yearly'
+                ]
         self.df = self.df.drop(columns=cols)
         return self
+
+
 
         
     def remove_punctuations(self, col: str, table: Optional[dict]= None):
@@ -233,6 +250,8 @@ class DataCleaner():
             table = self._translate_table
         self.df[col] = self.df[col].str.translate(table)
         return self
+
+
 
 
     def tokenize_column(self, col: str, filter_keywords: np.ndarray= all_keywords, after_mutate: str= 'drop'):
@@ -268,6 +287,8 @@ class DataCleaner():
             self.remove_columns(col)
         return self 
     
+
+
     
     def split_tokens(self, col: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= False) -> pd.DataFrame:
         """
@@ -303,6 +324,8 @@ class DataCleaner():
         return pd.DataFrame(frame)
 
 
+
+
     def convert_to_datetime(self, col: str, expand= False, prefix: str= 'posted', **kwargs):
         """
         Converts a column to datetime and optionally extracts components.
@@ -336,6 +359,8 @@ class DataCleaner():
         return self    
     
     
+
+
     def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand = True):
         """
         Cleans and standardizes the location column.
@@ -373,6 +398,8 @@ class DataCleaner():
             self.df['state'] = self.df['state'].fillna(self.df['city'])
         return self
 
+
+
     
     def clean_via(self, fillna_val: Optional[str] = None):
         """
@@ -398,6 +425,8 @@ class DataCleaner():
         self.df["via"] = self.df["via"].str.strip()
         return self
     
+
+
     
     def clean_schedule_type(self, repl: Optional[dict[str, str]] = None):
         """
@@ -445,6 +474,8 @@ class DataCleaner():
         return self
     
     
+
+
     def clean_work_from_home(self):
         """
         Cleans and updates the 'work_from_home' column based on the 'description' column.
@@ -462,6 +493,35 @@ class DataCleaner():
         return self
         
 
+
+
+    def save_dataset(self, path='dataset/cleaned_gsearch_jobs.csv', **kwargs):
+        """
+        Saves the cleaned DataFrame to a CSV file.
+
+        This method exports the current DataFrame to a CSV file at the specified file path. 
+        Additional arguments can be passed to customize the CSV export process.
+
+        Parameters
+        ----------
+        path : str, optional
+            The file path where the DataFrame will be saved. 
+            Default is `dataset/cleaned_gsearch_jobs.csv`.
+
+        **kwargs : dict, optional
+            Additional keyword arguments passed to `pd.DataFrame.to_csv()`.
+
+        Returns
+        -------
+        None
+            This method does not return anything.
+        """
+        self.df.to_csv(path, **kwargs)
+        return None
+
+
+
+
     def get_cleaned_data(self) -> pd.DataFrame:
         """
         Retrieves the cleaned DataFrame.
@@ -474,7 +534,8 @@ class DataCleaner():
             The cleaned DataFrame.
         """
         return self.df
-    
+
+
 if __name__ == '__main__':
     data = pd.read_csv("dataset/gsearch_jobs.csv", index_col=0)
     # ser = data["description_tokens"].head(50)
