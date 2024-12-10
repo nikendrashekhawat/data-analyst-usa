@@ -52,13 +52,13 @@ class DataCleaner():
     """
 
     def __init__(self, dataframe: pd.DataFrame):
-        """ 
-        Initializes the DataCleaner with a DataFrame to be processed.
+        """
+        Initializes the DataCleaner with a DataFrame.
 
-        Args:
-        ----
+        Parameters
+        ----------
         dataframe : pd.DataFrame
-            The input DataFrame to be cleaned and processed.
+            The DataFrame to be cleaned and processed.
         """
         self.df = dataframe
         self.punct = "!$%'(),-/:;?[\\]^_`{|}"
@@ -73,18 +73,15 @@ class DataCleaner():
         """
         Tokenizes a string into lowercase words after removing extra spaces.
 
-        If the text is not empty, this method removes extra spaces, converts 
-        the text to lowercase, and tokenizes multi-word expressions.
-
-        Args:
-        ----
+        Parameters
+        ----------
         text : str
-            The text to be tokenized.
+            The text to tokenize.
 
-        Returns:
+        Returns
         -------
         np.ndarray | pd.NA
-            An array of tokenized words if successful, otherwise `pd.NA`.
+            An array of tokenized words or `pd.NA` if empty.
         """
         tokens = word_tokenize(text)
         tokens = np.array(tokens, dtype=np.str_)
@@ -102,23 +99,20 @@ class DataCleaner():
     
     def _filter_tokens(self, arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray | pd._libs.missing.NAType:
         """
-        Filters tokens based on a list of allowed keywords.
+        Filters tokens in `arr1` based on matches in `arr2`.
 
-        This method filters tokens from `arr1` based on whether they exist in `arr2`. 
-        If `arr1` is empty or no matching tokens are found, it returns `pd.NA`.
-
-        Args:
-        ----
-        arr1 : np.ndarray￼
-            The array of tokens to filter.
+        Parameters
+        ----------
+        arr1 : np.ndarray
+            Tokens to filter.
 
         arr2 : np.ndarray
-            The array of allowed tokens.
+            Allowed tokens for filtering.
 
-        Returns:
+        Returns
         -------
         np.ndarray | pd.NA
-            The filtered array of tokens or `pd.NA` if no tokens are found.
+            Filtered tokens or `pd.NA` if none match.
         """
         if pd.isna(arr1):
             return arr1
@@ -130,62 +124,53 @@ class DataCleaner():
     
 
 
-    def _extract_salary(self, col: str= "description", salary_pattern = None) -> pd.Series:
+    def _extract_salary(self, extract_from: str, salary_pattern = None) -> pd.Series:
         """
-        Extracts salary ranges from a specified DataFrame column.
+        Extracts salary ranges from a specified column.
 
-        This method identifies salary ranges in the form of "min-max" where numbers 
-        may include commas or a 'K'/'k' for thousands. It formats matched salaries as
-        "min-max" if both values are present.
+        Parameters
+        ----------
+        extract_from : str
+            Column name to extract salary from.
 
-        Args:
-        ----
-        col : str, optional
-            The DataFrame column to search for salary ranges. Defaults to "description".
-            
         salary_pattern : str, optional
-            Custom regex pattern for extracting salary ranges. If not provided,
-            a default pattern is used. Default, `\d{1,3}(?:,\d{3})?(?:[Kk])?`
+            Custom regex pattern. Defaults to a predefined salary range pattern.
 
-        Returns:
+        Returns
         -------
-        pd.Series: 
-            A Series with extracted and formatted salary ranges, or `pd.NA` if no match is found.
+        pd.Series
+            Extracted and formatted salary ranges.
         """
-        col = self.df[col].str.replace(r'\n', ' ', regex=True).str.replace(r'\s+', ' ', regex=True)
+        temp_desc = self.df[extract_from].str.replace(r'\n', ' ', regex=True).str.replace(r'\s+', ' ', regex=True)
         if salary_pattern is None:
             number_pattern = r'\d{1,3}(?:,\d{3})?(?:[Kk])?'  # Matches numbers with optional commas or 'K|k'
             salary_pattern = fr'({number_pattern})\s?[–-]\s?({number_pattern})'  # Matches salary ranges
-        salary = col.str.extract(salary_pattern, flags=re.IGNORECASE)
+        salary = temp_desc.str.extract(salary_pattern, flags=re.IGNORECASE)
         formatted_salary = salary.apply(
             lambda x: f"{x[0]}-{x[1]}" if pd.notna(x[0]) and pd.notna(x[1]) else pd.NA, 
             axis=1
         )
         return formatted_salary
-    
+        
 
 
         
     def remove_duplicates(self, subset: Optional[list[str]] =None, **kwargs):
         """
-        Removes duplicate rows from the DataFrame based on specified columns.
+        Removes duplicate rows based on specified columns.
 
-        If no columns are specified, the method uses a default list of columns:
-        ['title', 'company_name', 'location', 'via', 'description'].
-
-        Args:
-        ----
+        Parameters
+        ----------
         subset : list[str], optional
-            Columns to check for duplicates.Defaults to the predefined list of key columns.
-            
-        **kwargs: 
-            Additional arguments passed to `pandas.DataFrame.drop_duplicates`, 
-            such as `keep`, `inplace`, or `ignore_index`.
+            Columns to check for duplicates. Defaults to key columns.
 
-        Returns:
+        **kwargs : dict, optional
+            Additional arguments for `pd.DataFrame.drop_duplicates()`.
+
+        Returns
         -------
-        self: 
-            The current instance with duplicates removed from the DataFrame.
+        DataCleaner
+            The updated instance.
         """
         if subset is None:
             subset = ['title', 'company_name', 'location', 'via', 'description']
@@ -199,21 +184,15 @@ class DataCleaner():
         """
         Removes specified columns from the DataFrame.
 
-        If no columns are specified, a default list of columns is removed:
-        ["index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", 
-        "search_location", "description_tokens", 'salary', 'salary_rate', 
-        'salary_avg', 'salary_hourly', 'salary_yearly']
+        Parameters
+        ----------
+        cols : list[str] | str, optional
+            Columns to remove. Defaults to a predefined list.
 
-        Args:
-        ----
-        cols :  list[str] or str, optional
-            Column name(s) to be removed.If not provided, defaults to the predefined 
-            list of columns.
-
-        Returns:
-        --------
-         self: 
-            The current instance with the specified columns removed from the DataFrame.
+        Returns
+        -------
+        DataCleaner
+            The updated instance.
         """
         if cols is None:
             cols = [
@@ -229,22 +208,20 @@ class DataCleaner():
         
     def remove_punctuations(self, col: str, table: Optional[dict]= None):
         """
-        Removes punctuation from the specified column.
+        Removes punctuation from a specified column.
 
-        Replaces punctuation characters in the given column based on a translation table.
-
-        Args:
-        ----
+        Parameters
+        ----------
         col : str
-            The name of the column to process.
+            Column name to clean.
 
         table : dict, optional
-            A custom translation table. If not provided, the default one is used.
+            Custom translation table. Uses the default table if not provided.
 
-        Returns:
+        Returns
         -------
         DataCleaner
-            The modified instance for method chaining.
+            The updated instance.
         """
         if table is None:
             table = self._translate_table
@@ -256,29 +233,23 @@ class DataCleaner():
 
     def tokenize_column(self, col: str, filter_keywords: np.ndarray= all_keywords, after_mutate: str= 'drop'):
         """
-        Tokenizes and filters text from a specified column.
+        Tokenizes and filters text in a specified column.
 
-        Creates a new column containing tokenized and filtered words based on 
-        the provided keywords.
-        
-        Remove the actual column from passed dataframe after tokenizing it.
-
-        Args:
-        ----
+        Parameters
+        ----------
         col : str
-            The name of the column to tokenize.
+            Column to tokenize.
 
         filter_keywords : np.ndarray, optional
-            An array of allowed keywords for filtering tokens. Default is `all_keywords`.
-        
-        after_mutate : str, optional {'drop', 'remain'}
-            Remove actual column after tokenizing it, if `drop` is passed. To keep the 
-            column in dataframe, pass `remain`.
+            Keywords for token filtering. Defaults to `all_keywords`.
 
-        Returns:
+        after_mutate : str, optional {'drop', 'remain'}
+            Whether to drop the original column. Defaults to 'drop'.
+
+        Returns
         -------
         DataCleaner
-            The modified instance for method chaining.
+            The updated instance.
         """
         col_name = col+"_tokens"
         self.df[col_name] = self.df[col].apply(self._tokenize_words)
@@ -292,26 +263,23 @@ class DataCleaner():
     
     def split_tokens(self, col: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= False) -> pd.DataFrame:
         """
-        Splits the tokens in a specified column into multiple columns based on given token arrays.
+        Splits tokens into multiple columns based on token arrays.
 
-        Args:
-        ----
+        Parameters
+        ----------
         col : str
-            Column to process.
-                
-        filter_with : Optional[list[np.ndarray]], optional 
-            List of token arrays to filter the column's values.
-            Defaults to predefined arrays.
-                
-        expand : bool, optional
-            If True, adds the token columns to the original DataFrame. 
-            If False, returns a new DataFrame with token columns. Defaults to False.
+            Column to split tokens from.
 
-        Returns:
+        filter_with : list[np.ndarray], optional
+            Token arrays to filter tokens. Defaults to predefined arrays.
+
+        expand : bool, optional
+            If True, adds new columns to the DataFrame. Defaults to False.
+
+        Returns
         -------
-        pd.DataFrame : 
-            A new DataFrame with filtered token columns or the original DataFrame 
-            with added columns if `expand` is True.
+        pd.DataFrame
+            Filtered token columns or the updated DataFrame if `expand=True`.
         """
         if filter_with is None:
             filter_with = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr]
@@ -326,33 +294,32 @@ class DataCleaner():
 
 
 
-    def convert_to_datetime(self, col: str, expand= False, prefix: str= 'posted', **kwargs):
+    def clean_datetime(self, col: str, expand= False, prefix: str= 'posted', **kwargs):
         """
-        Converts a column to datetime and optionally extracts components.
+        Converts a column to datetime and extracts components.
 
-        Extracts year, month, and day components if `expand` is set to True.
-
-        Args:
-        ----
+        Parameters
+        ----------
         col : str
-            The name of the column to convert.
+            Column to convert.
 
         expand : bool, optional
-            Whether to extract year, month, and day components.
+            Extracts year, month, and day if True. Defaults to False.
 
         prefix : str, optional
-            The prefix for new columns when `expand=True`.
+            Prefix for extracted components. Defaults to 'posted'.
 
-        **kwargs : dict
-            Additional keyword arguments for `pd.to_datetime`.
+        **kwargs : dict, optional
+            Additional arguments for `pd.to_datetime()`.
 
-        Returns:
+        Returns
         -------
         DataCleaner
-            The modified instance for method chaining.
+            The updated instance.
         """
         self.df[col] = pd.to_datetime(self.df[col], **kwargs)
         if expand:
+            self.df[prefix+'date'] = self.df[col].dt.date
             self.df[prefix+'_year'] = self.df[col].dt.year
             self.df[prefix+'_month'] = self.df[col].dt.month
             self.df[prefix+'_day'] = self.df[col].dt.day
@@ -363,26 +330,23 @@ class DataCleaner():
 
     def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand = True):
         """
-        Cleans and standardizes the location column.
+        Cleans and standardizes the 'location' column.
 
-        Fills missing values, standardizes location names, and optionally splits
-        the column into city and state.
-
-        Args:
-        ----
+        Parameters
+        ----------
         fillna_val : str, optional
-            The default value for missing locations.
+            Default value for missing locations. Defaults to 'Remote USA only'.
 
-        repl : dict, optional
-            A dictionary of replacements for specific locations.
+        repl : dict[str, str], optional
+            Replacement mapping for specific locations. Uses default mapping if not provided.
 
         expand : bool, optional
-            Whether to split the location column into city and state.
+            Splits the column into 'city' and 'state' if True. Defaults to True.
 
-        Returns:
+        Returns
         -------
         DataCleaner
-            The modified instance for method chaining.
+            The updated instance.
         """
         if repl is None:
             repl = {'Anywhere': 'Remote Anywhere'}
@@ -403,20 +367,17 @@ class DataCleaner():
     
     def clean_via(self, fillna_val: Optional[str] = None):
         """
-        Cleans the 'via' column in the DataFrame.
+        Cleans the 'via' column by filling missing values.
 
-        Fills missing values with the provided value or the column's mode 
-        if no value is given. Removes the word "via" and extra spaces.
-
-        Args:
-        ----
+        Parameters
+        ----------
         fillna_val : str, optional
-            Value to fill missing entries. Defaults to the column's mode.
+            Value for filling missing entries. Defaults to the column's mode.
 
-        Returns:
+        Returns
         -------
         DataCleaner
-            The updated instance for method chaining.
+            The updated instance.
         """
         if fillna_val is None:
             fillna_val = self.df["via"].mode()[0]  
@@ -430,33 +391,17 @@ class DataCleaner():
     
     def clean_schedule_type(self, repl: Optional[dict[str, str]] = None):
         """
-        Cleans and standardizes the 'schedule_type' column in the DataFrame.
+        Standardizes the 'schedule_type' column.
 
-        If no replacement dictionary is provided, a default mapping is used 
-        to standardize common schedule type values.
-
-        Default Replacement Dictionary:
-            {
-                'Temp work': 'Temporary',
-                'diem': 'Temporary',
-                'Intern': 'Internship',
-                'Volunteer': 'Volunteer',
-                'Contractor': 'Contract',
-                'Part-time': 'Part-time'
-            }
-
-        Missing values in 'schedule_type' are filled with 'Temporary'.
-
-        Args:
-        ----
+        Parameters
+        ----------
         repl : dict[str, str], optional
-            A dictionary mapping substrings to replacement values. 
-            If not provided, the default mapping is used.
+            Custom replacement mapping. Uses default mapping if not provided.
 
-        Returns:
+        Returns
         -------
-        self: 
-            The current instance with the 'schedule_type' column cleaned.
+        DataCleaner
+            The updated instance.
         """
         if repl is None:
             repl = {
@@ -478,43 +423,106 @@ class DataCleaner():
 
     def clean_work_from_home(self):
         """
-        Cleans and updates the 'work_from_home' column based on the 'description' column.
+        Updates the 'work_from_home' column based on the 'description' content.
 
-        This method checks if the 'description' column contains the phrase 
-        'work from home' (case-insensitive). If the 'work_from_home' column 
-        has missing values, it fills them using this check.
-
-        Returns:
-        self: 
-            The current instance with the 'work_from_home' column cleaned and updated.
+        Returns
+        -------
+        DataCleaner
+            The updated instance.
         """
         mask = self.df["description"].str.lower().str.contains("work from home")
         self.df["work_from_home"] = self.df["work_from_home"].fillna(mask)
         return self
+     
+
+
+   
+    def clean_salary(self, extract_salary_from: str, expand_range=False):
+        """
+        Extracts and cleans salary ranges from a specified column.
+
+        Parameters
+        ----------
+        extract_salary_from : str
+            Column name to extract salary from.
+
+        expand_range : bool, optional
+            If True, adds numeric salary columns. Defaults to False.
+
+        Returns
+        -------
+        DataCleaner
+            The updated instance.
+
+        Notes
+        -----
+        - `salary_min` values are adjusted to thousands if the minimum salary length is less than 4 
+            and the maximum salary length exceeds 4 digits.
+        - Invalid salary values are set to `pd.NA`.
+        - `salary_pay` is updated as a combined "salary_min-salary_max" string.
+        """
         
+        def truncate_max(x):
+            if pd.isna(x):
+                return pd.NA
+            if len(x)<5:
+                return pd.NA
+            if len(x)>6:
+                return x[:6]
+            else:
+                return x
+                
+        def truncate_min(x):
+            if pd.isna(x):
+                return pd.NA
+            if len(x)>6:
+                return x[:6]
+            else:
+                return x
+                
+        def clean_min(x, y):
+            if pd.isna(x) or pd.isna(y):
+                return pd.NA
+            if len(x) < 4 and len(y) > 4:
+                return x+'000'
+            else:
+                return x
+
+        salary_range = self._extract_salary(extract_salary_from)
+        salary_range = self.df["salary_pay"].fillna(salary_range)
+        salary_range = salary_range.fillna(pd.NA)
+        salary_range = salary_range.replace({'–':'-', '[,.]':'', '[Kk]':'000'}, regex=True)
+        salary_range = salary_range.str.split('-', expand=True)
+        salary_range = salary_range.rename({0:'salary_min', 1:'salary_max'}, axis=1)
+        salary_range['salary_max'] = salary_range['salary_max'].apply(truncate_max)
+        salary_range['salary_min'] = salary_range['salary_min'].apply(truncate_min)
+        salary_range['salary_min'] = salary_range['salary_min'].combine(salary_range['salary_max'], clean_min)
+        self.df['salary_pay'] = salary_range['salary_min'] + '-' + salary_range['salary_max']
+        if expand_range:
+            salary_range['salary_max'] = pd.to_numeric(salary_range['salary_max'])
+            salary_range['salary_min'] = pd.to_numeric(salary_range['salary_min'])
+            pd.concat(self.df, salary_range, axis=1)
+            return self
+        return self
+
 
 
 
     def save_dataset(self, path='dataset/cleaned_gsearch_jobs.csv', **kwargs):
         """
-        Saves the cleaned DataFrame to a CSV file.
-
-        This method exports the current DataFrame to a CSV file at the specified file path. 
-        Additional arguments can be passed to customize the CSV export process.
+        Saves the DataFrame to a CSV file.
 
         Parameters
         ----------
         path : str, optional
-            The file path where the DataFrame will be saved. 
-            Default is `dataset/cleaned_gsearch_jobs.csv`.
+            The file path to save the DataFrame. Default is 'dataset/cleaned_gsearch_jobs.csv'.
 
         **kwargs : dict, optional
-            Additional keyword arguments passed to `pd.DataFrame.to_csv()`.
+            Additional arguments for `pd.DataFrame.to_csv()`.
 
         Returns
         -------
         None
-            This method does not return anything.
         """
         self.df.to_csv(path, **kwargs)
         return None
@@ -526,12 +534,10 @@ class DataCleaner():
         """
         Retrieves the cleaned DataFrame.
 
-        This method returns the processed DataFrame after all applied transformations.
-
-        Returns:
+        Returns
         -------
         pd.DataFrame
-            The cleaned DataFrame.
+            The processed DataFrame.
         """
         return self.df
 
