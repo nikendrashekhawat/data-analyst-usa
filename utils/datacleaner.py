@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from nltk.tokenize import word_tokenize, MWETokenizer
-from reserved_keywords import (
+from utils.reserved_keywords import (
     technical_tokens,
     soft_skills_tokens,
     education_tokens,
@@ -261,7 +261,7 @@ class DataCleaner():
 
 
     
-    def split_tokens(self, col: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= False) -> pd.DataFrame:
+    def split_tokens(self, col: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= True) -> pd.DataFrame:
         """
         Splits tokens into multiple columns based on token arrays.
 
@@ -274,7 +274,8 @@ class DataCleaner():
             Token arrays to filter tokens. Defaults to predefined arrays.
 
         expand : bool, optional
-            If True, adds new columns to the DataFrame. Defaults to False.
+            Defaults to True. If True, adds new columns to the DataFrame. 
+            Otherwise returns a `pd.DataFrame`.
 
         Returns
         -------
@@ -294,7 +295,7 @@ class DataCleaner():
 
 
 
-    def clean_datetime(self, col: str, expand= False, prefix: str= 'posted', **kwargs):
+    def clean_datetime(self, col: str, expand= True, prefix: str= 'posted', **kwargs):
         """
         Converts a column to datetime and extracts components.
 
@@ -304,7 +305,8 @@ class DataCleaner():
             Column to convert.
 
         expand : bool, optional
-            Extracts year, month, and day if True. Defaults to False.
+            Extracts date, year, month, and day if True. Otherwise change dtype
+            of specified column to `datetime64[ns]`.
 
         prefix : str, optional
             Prefix for extracted components. Defaults to 'posted'.
@@ -437,7 +439,7 @@ class DataCleaner():
 
 
    
-    def clean_salary(self, extract_salary_from: str, expand_range=False):
+    def clean_salary(self, extract_salary_from: str, expand_range=True):
         """
         Extracts and cleans salary ranges from a specified column.
 
@@ -447,7 +449,9 @@ class DataCleaner():
             Column name to extract salary from.
 
         expand_range : bool, optional
-            If True, adds numeric salary columns. Defaults to False.
+            Defaults to True. If True, extract `min`, `max`, `average` and 
+            adds numeric salary columns to dataframe.
+            
 
         Returns
         -------
@@ -501,6 +505,7 @@ class DataCleaner():
         if expand_range:
             salary_range['salary_max'] = pd.to_numeric(salary_range['salary_max'])
             salary_range['salary_min'] = pd.to_numeric(salary_range['salary_min'])
+            salary_range['salary_average'] = (salary_range['salary_max'] + salary_range['salary_min']) / 2 
             pd.concat(self.df, salary_range, axis=1)
             return self
         return self
