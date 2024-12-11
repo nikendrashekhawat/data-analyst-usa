@@ -506,7 +506,7 @@ class DataCleaner():
             salary_range['salary_max'] = pd.to_numeric(salary_range['salary_max'])
             salary_range['salary_min'] = pd.to_numeric(salary_range['salary_min'])
             salary_range['salary_average'] = (salary_range['salary_max'] + salary_range['salary_min']) / 2 
-            pd.concat(self.df, salary_range, axis=1)
+            self.df = pd.concat([self.df, salary_range], axis=1)
             return self
         return self
 
