@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 from kaggle.api.kaggle_api_extended import KaggleApi
@@ -59,10 +60,12 @@ class KaggleDataCollection():
             path=str(dest_dir),
             force=force
             )
+            if os.path.isfile(dest_dir/filename):
+                self._datapath = dest_dir / filename
+                
         except Exception as e:
             print(f"Error downloading file: {e}")
             
-        self._datapath = dest_dir / filename
         return None
 
         

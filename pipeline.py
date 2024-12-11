@@ -1,6 +1,8 @@
-from pathlib import Path
+from typing import Optional
+import os
 import pandas as pd
 import numpy as np
+import tomllib
 from utils.datacollector import KaggleDataCollection
 from utils.datacleaner import DataCleaner
 
@@ -17,7 +19,7 @@ raw_data = pd.read_csv(data_path, index_col=0)
 
 dc = DataCleaner(raw_data)
 
-d = (
+data = (
     dc.remove_columns()
     .remove_duplicates()
     .clean_location()
@@ -26,20 +28,21 @@ d = (
     .clean_work_from_home()
     .clean_datetime('date_time')
     .clean_salary(extract_salary_from="description")
+    .
     .get_cleaned_data()
 )
+print(data.shape)
 
-print('*****************')
-print(d.shape)
-print('*****************')
 
-print('|')
-print('|')
-print('|')
-print('|')
-print('*****************')
-print(d.head())
-print('*****************')
+
+
+
+    
+    
+
+
+
+
 
 
 

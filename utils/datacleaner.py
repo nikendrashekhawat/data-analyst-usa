@@ -61,11 +61,11 @@ class DataCleaner():
             The DataFrame to be cleaned and processed.
         """
         self.df = dataframe
+        self.cleaned_file_path = None
         self.punct = "!$%'(),-/:;?[\\]^_`{|}"
         self.replace_punct_with = ' '
         self._translate_table = str.maketrans(self.punct, self.replace_punct_with * len(self.punct))
         self._tokenizer = MWETokenizer(mwes=mwes, separator=' ')
-          
               
 
 
@@ -114,11 +114,10 @@ class DataCleaner():
         np.ndarray | pd.NA
             Filtered tokens or `pd.NA` if none match.
         """
-        if pd.isna(arr1):
-            return arr1
-        filtered_arr = arr1[np.isin(arr1, arr2)]
-        if filtered_arr.size != 0:
-            return np.unique(filtered_arr)
+        if arr1.size != 0:
+            filtered_arr = arr1[np.isin(arr1, arr2)]
+            if filtered_arr.size != 0:
+                return np.unique(filtered_arr).tolist()
         return pd.NA
     
     
@@ -173,11 +172,24 @@ class DataCleaner():
             The updated instance.
         """
         if subset is None:
-            subset = ['title', 'company_name', 'location', 'via', 'description']
+            subset = ['title', 'company_name', 'location', 'description']
         self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
         return self
 
 
+    
+    def filter_data_analyst_jobs(self):
+        """
+        Filters job postings with 'Data Analyst' in the title (case-insensitive).
+
+        Returns
+        -------
+        DataCleaner
+            The updated instance with filtered job postings.
+        """
+        title = self.df["title"].str.lower()
+        self.df = self.df[title.str.contains("data analyst")]
+        return self
 
 
     def remove_columns(self, cols: list[str] | str= None):
@@ -197,8 +209,8 @@ class DataCleaner():
         if cols is None:
             cols = [
                 "index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", 
-                "search_location", "description_tokens", 'salary', 'salary_rate', 
-                'salary_avg', 'salary_hourly', 'salary_yearly'
+                "search_location", "description_tokens", 'salary', 'salary_rate', 'salary_standardized',
+                'salary_avg', 'salary_hourly', 'salary_yearly', 'salary_min', 'salary_max'
                 ]
         self.df = self.df.drop(columns=cols)
         return self
@@ -231,7 +243,7 @@ class DataCleaner():
 
 
 
-    def tokenize_column(self, col: str, filter_keywords: np.ndarray= all_keywords, after_mutate: str= 'drop'):
+    def tokenize_column(self, col: str, filter_keywords: np.ndarray= all_keywords, after_mutate: str= 'remain'):
         """
         Tokenizes and filters text in a specified column.
 
@@ -243,8 +255,8 @@ class DataCleaner():
         filter_keywords : np.ndarray, optional
             Keywords for token filtering. Defaults to `all_keywords`.
 
-        after_mutate : str, optional {'drop', 'remain'}
-            Whether to drop the original column. Defaults to 'drop'.
+        after_mutate : str, optional, {'drop', 'remain'}
+            Whether to drop the original column. Defaults to 'remain'.
 
         Returns
         -------
@@ -288,7 +300,7 @@ class DataCleaner():
         cols_name = ["arr_"+ str(i) for i in range(new_cols)]
         frame = {arr: self.df[col].apply(self._filter_tokens, args=(fil_arr,)) for arr, fil_arr in zip(cols_name, filter_with)}
         if expand:
-            pd.concat([self.df, pd.DataFrame(frame)], axis=1)
+            self.df = pd.concat([self.df, pd.DataFrame(frame)], axis=1)
             return self
         return pd.DataFrame(frame)
 
@@ -321,7 +333,7 @@ class DataCleaner():
         """
         self.df[col] = pd.to_datetime(self.df[col], **kwargs)
         if expand:
-            self.df[prefix+'date'] = self.df[col].dt.date
+            self.df[prefix+'_date'] = self.df[col].dt.date
             self.df[prefix+'_year'] = self.df[col].dt.year
             self.df[prefix+'_month'] = self.df[col].dt.month
             self.df[prefix+'_day'] = self.df[col].dt.day
@@ -330,7 +342,7 @@ class DataCleaner():
     
 
 
-    def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand = True):
+    def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand= True, after_mutate= 'drop'):
         """
         Cleans and standardizes the 'location' column.
 
@@ -344,6 +356,9 @@ class DataCleaner():
 
         expand : bool, optional
             Splits the column into 'city' and 'state' if True. Defaults to True.
+        
+        after_mutate : `drop`, optional, {`drop`, `remain`}
+            Remove the column if expand is True. Defaults to `drop`.
 
         Returns
         -------
@@ -362,6 +377,8 @@ class DataCleaner():
             self.df['city'] = loc_frame[0]
             self.df['state'] = loc_frame[1]
             self.df['state'] = self.df['state'].fillna(self.df['city'])
+            if after_mutate == 'drop':
+                self.remove_columns('location')
         return self
 
 
@@ -441,7 +458,8 @@ class DataCleaner():
    
     def clean_salary(self, extract_salary_from: str, expand_range=True):
         """
-        Extracts and cleans salary ranges from a specified column.
+        Extracts and cleans salary ranges from a specified column. And fill the
+        column `salary_pay` with extracted values and <NA> for missing values.
 
         Parameters
         ----------
@@ -460,8 +478,8 @@ class DataCleaner():
 
         Notes
         -----
-        - `salary_min` values are adjusted to thousands if the minimum salary length is less than 4 
-            and the maximum salary length exceeds 4 digits.
+        - Keeps only yearly based salaries. It will remove any hourly, weekly or monthly salaries
+            and fill them with <NA> after extracting salary.
         - Invalid salary values are set to `pd.NA`.
         - `salary_pay` is updated as a combined "salary_min-salary_max" string.
         """
@@ -513,7 +531,7 @@ class DataCleaner():
 
 
 
-    def save_dataset(self, path='dataset/cleaned_gsearch_jobs.csv', **kwargs):
+    def save_dataset(self, path_to_save: Optional[str]=None, **kwargs):
         """
         Saves the DataFrame to a CSV file.
 
@@ -529,7 +547,10 @@ class DataCleaner():
         -------
         None
         """
-        self.df.to_csv(path, **kwargs)
+        if path_to_save is None:
+            path_to_save = 'dataset/cleaned_gsearch_jobs.csv'
+        self.cleaned_file_path = path_to_save
+        self.df.to_csv(path_to_save, **kwargs)
         return None
 
 
