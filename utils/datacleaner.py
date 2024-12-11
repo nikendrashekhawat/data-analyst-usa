@@ -2,12 +2,15 @@ import re
 from typing import Optional
 import numpy as np
 import pandas as pd
+import nltk
 from nltk.tokenize import word_tokenize, MWETokenizer
 from utils.reserved_keywords import (
     technical_tokens,
     soft_skills_tokens,
     education_tokens,
 )
+nltk.download('punkt_tab')
+
 
 # Global Variable
 
@@ -114,10 +117,11 @@ class DataCleaner():
         np.ndarray | pd.NA
             Filtered tokens or `pd.NA` if none match.
         """
-        if arr1.size != 0:
-            filtered_arr = arr1[np.isin(arr1, arr2)]
-            if filtered_arr.size != 0:
-                return np.unique(filtered_arr).tolist()
+        if isinstance(arr1, np.ndarray):
+            if arr1.size != 0:
+                filtered_arr = arr1[np.isin(arr1, arr2)]
+                if filtered_arr.size != 0:
+                    return np.unique(filtered_arr)
         return pd.NA
     
     
@@ -218,13 +222,13 @@ class DataCleaner():
 
 
         
-    def remove_punctuations(self, col: str, table: Optional[dict]= None):
+    def remove_punctuations(self, from_col: str, table: Optional[dict]= None):
         """
         Removes punctuation from a specified column.
 
         Parameters
         ----------
-        col : str
+        from_col : str
             Column name to clean.
 
         table : dict, optional
@@ -237,7 +241,7 @@ class DataCleaner():
         """
         if table is None:
             table = self._translate_table
-        self.df[col] = self.df[col].str.translate(table)
+        self.df[from_col] = self.df[from_col].str.translate(table)
         return self
 
 
@@ -266,6 +270,7 @@ class DataCleaner():
         col_name = col+"_tokens"
         self.df[col_name] = self.df[col].apply(self._tokenize_words)
         self.df[col_name] = self.df[col_name].apply(self._filter_tokens, args=(filter_keywords,))
+
         if after_mutate == 'drop':
             self.remove_columns(col)
         return self 
@@ -548,7 +553,7 @@ class DataCleaner():
         None
         """
         if path_to_save is None:
-            path_to_save = 'dataset/cleaned_gsearch_jobs.csv'
+            path_to_save = 'dataset/cleaned_data.csv'
         self.cleaned_file_path = path_to_save
         self.df.to_csv(path_to_save, **kwargs)
         return None
