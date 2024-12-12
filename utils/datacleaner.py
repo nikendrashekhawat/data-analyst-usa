@@ -165,7 +165,7 @@ class DataCleaner():
         Parameters
         ----------
         subset : list[str], optional
-            Columns to check for duplicates. Defaults to key columns.
+            Columns to check for duplicates. Defaults to key columns {`title`, `company_name`, `description`}
 
         **kwargs : dict, optional
             Additional arguments for `pd.DataFrame.drop_duplicates()`.
@@ -176,7 +176,7 @@ class DataCleaner():
             The updated instance.
         """
         if subset is None:
-            subset = ['title', 'company_name', 'location', 'description']
+            subset = ['title', 'company_name', 'description']
         self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
         return self
 
@@ -278,13 +278,13 @@ class DataCleaner():
 
 
     
-    def split_tokens(self, col: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= True) -> pd.DataFrame:
+    def split_tokens(self, col_to_split: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= True, new_cols_name: Optional[list[str]]= None) -> pd.DataFrame:
         """
         Splits tokens into multiple columns based on token arrays.
 
         Parameters
         ----------
-        col : str
+        col_to_split : str
             Column to split tokens from.
 
         filter_with : list[np.ndarray], optional
@@ -293,6 +293,10 @@ class DataCleaner():
         expand : bool, optional
             Defaults to True. If True, adds new columns to the DataFrame. 
             Otherwise returns a `pd.DataFrame`.
+        
+        new_cols_name : list[str], optional
+            Name given to new columns after splitting the tokens. If None,
+            it will make new columns with prefix as `arr_` and numbers as suffix.
 
         Returns
         -------
@@ -302,8 +306,9 @@ class DataCleaner():
         if filter_with is None:
             filter_with = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr]
         new_cols = len(filter_with)
-        cols_name = ["arr_"+ str(i) for i in range(new_cols)]
-        frame = {arr: self.df[col].apply(self._filter_tokens, args=(fil_arr,)) for arr, fil_arr in zip(cols_name, filter_with)}
+        if new_cols_name is None:
+            new_cols_name = ["arr_"+ str(i) for i in range(new_cols)]
+        frame = {col_name: self.df[col_to_split].apply(self._filter_tokens, args=(fil_arr,)) for col_name, fil_arr in zip(new_cols_name, filter_with)}
         if expand:
             self.df = pd.concat([self.df, pd.DataFrame(frame)], axis=1)
             return self

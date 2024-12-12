@@ -72,7 +72,7 @@ class DataPipeline():
 
         print('*'*30)
         print('Collecting Data Process finished..')
-        print(f'Raw Data is downloaded and saved in {raw_file}')
+        print(f'Raw Data is downloaded and saved in `{raw_file}`')
         print('*'*30)
         return None
     
@@ -98,14 +98,14 @@ class DataPipeline():
             .remove_duplicates()
             .filter_data_analyst_jobs()
             .clean_datetime("date_time")
-            .clean_location()
+            .clean_location(fillna_val="Others")
             .clean_via()
             .clean_schedule_type()
             .clean_work_from_home()
             .clean_salary(extract_salary_from="description")
             .remove_punctuations(from_col="description")
             .tokenize_column("description", after_mutate='remain')
-            .split_tokens("description_tokens")
+            .split_tokens(col_to_split="description_tokens", new_cols_name=['technical_tokens', 'softskills_tokens', 'education_tokens'])
             .remove_columns(['description', 'extensions'])
         )
         # Save the cleaned dataset
@@ -115,7 +115,7 @@ class DataPipeline():
 
         print('*'*30)
         print('Cleaning Process finished.')
-        print(f'Cleaned data is saved as {cleaner.cleaned_file_path}')
+        print(f'Cleaned data is saved in `{cleaner.cleaned_file_path}`')
         print('*'*30)
         return None
 
