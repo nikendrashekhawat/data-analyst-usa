@@ -100,7 +100,7 @@ class DataCleaner():
         tokens = np.array(tokens, dtype=np.str_)
         tokens = np.char.strip(tokens)
         tokens = np.char.lower(tokens)
-        tokens = tokens.tolist()
+        # tokens = tokens.tolist()
         tokens = self._tokenizer.tokenize(tokens)
         tokens = np.array(tokens, dtype=np.str_)
         return tokens
@@ -183,7 +183,7 @@ class DataCleaner():
         """
         try:
             if subset is None:
-                subset = ['title', 'company_name', 'location','description']
+                subset = ['title', 'company_name', 'location', 'description']
             self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
         except KeyError as e:
             raise DataCleanerError(f"Missing required columns: {e}")
@@ -201,7 +201,8 @@ class DataCleaner():
             The updated instance with filtered job postings.
         """
         title = self.df["title"].str.lower()
-        self.df = self.df[title.str.contains("data analyst")].reset_index(drop=True)
+        self.df = self.df[title.str.contains("data analyst")]
+        # .reset_index(drop=True)
         return self
 
 
@@ -278,7 +279,6 @@ class DataCleaner():
         """
         if filter_keywords is None:
             filter_keywords = all_keywords
-
         if new_col_name is None:
             new_col_name = f"{col}_tokens"
         self.df[new_col_name] = self.df[col].apply(
@@ -320,7 +320,7 @@ class DataCleaner():
             filter_with = [technical_tokens_arr, softskills_tokens_arr, educational_tokens_arr]
         new_cols = len(filter_with)
         if new_cols_name is None:
-            new_cols_name = ["arr_"+ str(i) for i in range(new_cols)]
+            new_cols_name = [f"arr_{i}" for i in range(new_cols)]
         frame = {col_name: self.df[col_to_split].apply(self._filter_tokens, args=(fil_arr,)) for col_name, fil_arr in zip(new_cols_name, filter_with)}
         if expand:
             self.df = pd.concat([self.df, pd.DataFrame(frame)], axis=1)
@@ -506,7 +506,6 @@ class DataCleaner():
         - Invalid salary values are set to `pd.NA`.
         - `salary_pay` is updated as a combined "salary_min-salary_max" string.
         """
-        
         def truncate_max(x):
             if pd.isna(x):
                 return pd.NA
@@ -556,24 +555,24 @@ class DataCleaner():
 
     def save_dataset(self, path_to_save: Optional[str]=None, **kwargs):
         """
-        Saves the DataFrame to a CSV file.
+        Saves the DataFrame to a Parquet file.
 
         Parameters
         ----------
         path : str, optional
-            The file path to save the DataFrame. Default is 'dataset/cleaned_gsearch_jobs.csv'.
+            The file path to save the DataFrame. Default is 'dataset/cleaned_gsearch_jobs.parquet'.
 
         **kwargs : dict, optional
-            Additional arguments for `pd.DataFrame.to_csv()`.
+            Additional arguments for `pd.DataFrame.to_parquet()`.
 
         Returns
         -------
         None
         """
         if path_to_save is None:
-            path_to_save = 'dataset/cleaned_data.csv'
+            path_to_save = 'dataset/cleaned_data.parquet'
         self.cleaned_file_path = path_to_save
-        self.df.to_csv(path_to_save, **kwargs)
+        self.df.to_parquet(path_to_save, index=False, **kwargs)
         return None
 
 
