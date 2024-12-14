@@ -176,7 +176,7 @@ class DataCleaner():
             The updated instance.
         """
         if subset is None:
-            subset = ['title', 'company_name', 'description']
+            subset = ['title', 'company_name', 'location','description']
         self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
         return self
 
@@ -193,6 +193,7 @@ class DataCleaner():
         """
         title = self.df["title"].str.lower()
         self.df = self.df[title.str.contains("data analyst")]
+        self.df = self.df.reset_index(drop=True)
         return self
 
 
