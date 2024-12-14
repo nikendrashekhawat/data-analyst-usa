@@ -1,5 +1,6 @@
 import re
-from typing import Optional
+import logging
+from typing import Optional, Union
 import numpy as np
 import pandas as pd
 import nltk
@@ -24,6 +25,9 @@ all_keywords = np.unique(np.concatenate([technical_tokens_arr, softskills_tokens
 
 # Multi-word expressions extracted from keywords for tokenization
 mwes = [tuple(phrase.split()) for phrase in all_keywords if ' ' in phrase]
+
+class DataCleanerError(Exception):
+    """Custom exception for DataCleaner-related errors."""
 
 
 class DataCleaner():
@@ -63,7 +67,11 @@ class DataCleaner():
         dataframe : pd.DataFrame
             The DataFrame to be cleaned and processed.
         """
-        self.df = dataframe
+        if not isinstance(dataframe, pd.DataFrame):
+            raise DataCleanerError("Input must be a Pandas DataFrame.")
+        if dataframe.empty:
+            logging.warning("The input DataFrame is empty.")
+        self.df = dataframe.copy()
         self.cleaned_file_path = None
         self.punct = "!$%'(),-/:;?[\\]^_`{|}"
         self.replace_punct_with = ' '
@@ -72,7 +80,7 @@ class DataCleaner():
               
 
 
-    def _tokenize_words(self, text: str) -> np.ndarray | pd._libs.missing.NAType:
+    def _tokenize_words(self, text: str) -> Optional[np.ndarray]:
         """
         Tokenizes a string into lowercase words after removing extra spaces.
 
@@ -87,20 +95,19 @@ class DataCleaner():
             An array of tokenized words or `pd.NA` if empty.
         """
         tokens = word_tokenize(text)
+        if not tokens:
+            return pd.NA
         tokens = np.array(tokens, dtype=np.str_)
-        if tokens.size != 0:
-            tokens = np.char.strip(tokens)
-            tokens = np.char.lower(tokens)
-            tokens = tokens.tolist()
-            tokens = self._tokenizer.tokenize(tokens)
-            tokens = np.array(tokens, dtype=np.str_)
-            return tokens
-        return pd.NA
-    
+        tokens = np.char.strip(tokens)
+        tokens = np.char.lower(tokens)
+        tokens = tokens.tolist()
+        tokens = self._tokenizer.tokenize(tokens)
+        tokens = np.array(tokens, dtype=np.str_)
+        return tokens
 
 
     
-    def _filter_tokens(self, arr1: np.ndarray, arr2: np.ndarray) -> np.ndarray | pd._libs.missing.NAType:
+    def _filter_tokens(self, arr1: np.ndarray, arr2: np.ndarray) -> Optional[np.ndarray]:
         """
         Filters tokens in `arr1` based on matches in `arr2`.
 
@@ -117,17 +124,16 @@ class DataCleaner():
         np.ndarray | pd.NA
             Filtered tokens or `pd.NA` if none match.
         """
-        if isinstance(arr1, np.ndarray):
-            if arr1.size != 0:
-                filtered_arr = arr1[np.isin(arr1, arr2)]
-                if filtered_arr.size != 0:
-                    return np.unique(filtered_arr)
+        if isinstance(arr1, np.ndarray) and arr1.size:
+            filtered_arr = arr1[np.isin(arr1, arr2)]
+            if filtered_arr.size:
+                return np.unique(filtered_arr)
         return pd.NA
     
     
 
 
-    def _extract_salary(self, extract_from: str, salary_pattern = None) -> pd.Series:
+    def _extract_salary(self, extract_from: str, salary_pattern: Optional[str] = None) -> pd.Series:
         """
         Extracts salary ranges from a specified column.
 
@@ -175,9 +181,12 @@ class DataCleaner():
         DataCleaner
             The updated instance.
         """
-        if subset is None:
-            subset = ['title', 'company_name', 'location','description']
-        self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
+        try:
+            if subset is None:
+                subset = ['title', 'company_name', 'location','description']
+            self.df = self.df.drop_duplicates(subset=subset, ignore_index=True, **kwargs)
+        except KeyError as e:
+            raise DataCleanerError(f"Missing required columns: {e}")
         return self
 
 
@@ -192,12 +201,11 @@ class DataCleaner():
             The updated instance with filtered job postings.
         """
         title = self.df["title"].str.lower()
-        self.df = self.df[title.str.contains("data analyst")]
-        self.df = self.df.reset_index(drop=True)
+        self.df = self.df[title.str.contains("data analyst")].reset_index(drop=True)
         return self
 
 
-    def remove_columns(self, cols: list[str] | str= None):
+    def remove_columns(self, cols: Optional[Union[list[str], str]]= None, **kwargs):
         """
         Removes specified columns from the DataFrame.
 
@@ -217,7 +225,7 @@ class DataCleaner():
                 "search_location", "description_tokens", 'salary', 'salary_rate', 'salary_standardized',
                 'salary_avg', 'salary_hourly', 'salary_yearly', 'salary_min', 'salary_max'
                 ]
-        self.df = self.df.drop(columns=cols)
+        self.df = self.df.drop(columns=cols, **kwargs)
         return self
 
 
@@ -248,7 +256,7 @@ class DataCleaner():
 
 
 
-    def tokenize_column(self, col: str, filter_keywords: np.ndarray= all_keywords, after_mutate: str= 'remain'):
+    def tokenize_column(self, col: str, filter_keywords: Optional[np.ndarray]= None, new_col_name: Optional[str]= None, after_mutate: str= 'remain'):
         """
         Tokenizes and filters text in a specified column.
 
@@ -268,10 +276,14 @@ class DataCleaner():
         DataCleaner
             The updated instance.
         """
-        col_name = col+"_tokens"
-        self.df[col_name] = self.df[col].apply(self._tokenize_words)
-        self.df[col_name] = self.df[col_name].apply(self._filter_tokens, args=(filter_keywords,))
+        if filter_keywords is None:
+            filter_keywords = all_keywords
 
+        if new_col_name is None:
+            new_col_name = f"{col}_tokens"
+        self.df[new_col_name] = self.df[col].apply(
+            lambda text: self._filter_tokens(self._tokenize_words(text), filter_keywords)
+        )
         if after_mutate == 'drop':
             self.remove_columns(col)
         return self 
@@ -318,7 +330,7 @@ class DataCleaner():
 
 
 
-    def clean_datetime(self, col: str, expand= True, prefix: str= 'posted', **kwargs):
+    def clean_datetime(self, col: str, expand: bool= True, prefix: str= 'posted', **kwargs):
         """
         Converts a column to datetime and extracts components.
 
@@ -344,16 +356,16 @@ class DataCleaner():
         """
         self.df[col] = pd.to_datetime(self.df[col], **kwargs)
         if expand:
-            self.df[prefix+'_date'] = self.df[col].dt.date
-            self.df[prefix+'_year'] = self.df[col].dt.year
-            self.df[prefix+'_month'] = self.df[col].dt.month
-            self.df[prefix+'_day'] = self.df[col].dt.day
+            self.df[f'{prefix}_date'] = self.df[col].dt.date
+            self.df[f'{prefix}_year'] = self.df[col].dt.year
+            self.df[f'{prefix}_month'] = self.df[col].dt.month
+            self.df[f'{prefix}_day'] = self.df[col].dt.day
         return self    
     
     
 
 
-    def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand= True, after_mutate= 'drop'):
+    def clean_location(self, fillna_val= 'Remote USA only', repl: Optional[dict[str, str]]= None, expand: bool= True, after_mutate: str= 'drop'):
         """
         Cleans and standardizes the 'location' column.
 
@@ -467,7 +479,7 @@ class DataCleaner():
 
 
    
-    def clean_salary(self, extract_salary_from: str, expand_range=True):
+    def clean_salary(self, extract_salary_from: str, expand_range: bool=True):
         """
         Extracts and cleans salary ranges from a specified column. And fill the
         column `salary_pay` with extracted values and <NA> for missing values.
