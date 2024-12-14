@@ -8,6 +8,6 @@ pipeline = DataPipeline(
 
 pipeline.run_pipeline()
 file = pipeline.cleaned_filepath
-data = pd.read_csv(file, index_col=0)
+data = pd.read_parquet(file)
 print(data.columns)
 
