@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import nltk
 from nltk.tokenize import word_tokenize, MWETokenizer
-from src._keywords import mwes
-from src._keywords import tokens_to_normalize
+from src._util.keywords import mwes
+from src._util.keywords import tokens_to_normalize
 
 nltk.download('punkt_tab')
 

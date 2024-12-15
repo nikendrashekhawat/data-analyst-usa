@@ -3,7 +3,7 @@ from typing import Optional, Union
 import numpy as np
 import pandas as pd
 from src._error.errors import DataCollectorError, DataCleanerError
-from src.util.helpers import (
+from src._util.helpers import (
     _tokenize_words,
     _normalize_tokens,
     _filter_tokens,
@@ -12,7 +12,7 @@ from src.util.helpers import (
     truncate_min_salary,
     clean_min_salary
 )
-from src.util._keywords import (
+from src._util.keywords import (
     all_keywords,
     technical_tokens_arr, 
     softskills_tokens_arr,
