@@ -1,5 +1,5 @@
 import numpy as np
-from src.util.reserved_keywords import (
+from src._util.reserved_keywords import (
     technical_tokens,
     soft_skills_tokens,
     education_tokens,
