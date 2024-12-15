@@ -10,14 +10,10 @@ Include/
 Lib/
 share/
 etc/
-src/*pycache*
-src/*ipynb
-src/*checkpo*/
-notebook/
-utils/*pycache*
+**/__pycache__
 __pycache__/
-configs/*.toml
+notebook/
 dataset/*
 .idea
 */*.csv
-
+data-subframes/
