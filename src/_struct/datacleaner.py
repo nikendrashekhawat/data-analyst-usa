@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 from src._error.errors import DataCollectorError, DataCleanerError
 from src._util.helpers import (
-    _tokenize_words,
-    _normalize_tokens,
-    _filter_tokens,
-    _extract_salary,
+    tokenize_words,
+    normalize_tokens,
+    filter_tokens,
+    extract_salary,
     truncate_max_salary,
     truncate_min_salary,
     clean_min_salary
@@ -188,7 +188,7 @@ class DataCleaner():
         if new_col_name is None:
             new_col_name = f"{col}_tokens"
         self.df[new_col_name] = self.df[col].apply(
-            lambda text: _normalize_tokens(_filter_tokens(_tokenize_words(text), filter_keywords))
+            lambda text: normalize_tokens(filter_tokens(tokenize_words(text), filter_keywords))
         )
         if after_mutate == 'drop':
             self.remove_columns(col)
@@ -197,7 +197,13 @@ class DataCleaner():
 
 
     
-    def split_tokens(self, col_to_split: str, filter_with: Optional[list[np.ndarray]]= None, expand: bool= True, new_cols_name: Optional[list[str]]= None) -> pd.DataFrame:
+    def split_tokens(
+        self,
+        col_to_split: str, 
+        filter_with: Optional[list[np.ndarray]]= None, 
+        expand: bool= True, 
+        new_cols_name: Optional[list[str]]= None
+        ) -> pd.DataFrame:
         """
         Splits tokens into multiple columns based on token arrays.
 
@@ -227,7 +233,7 @@ class DataCleaner():
         new_cols = len(filter_with)
         if new_cols_name is None:
             new_cols_name = [f"arr_{i}" for i in range(new_cols)]
-        frame = {col_name: self.df[col_to_split].apply(_filter_tokens, args=(fil_arr,)) for col_name, fil_arr in zip(new_cols_name, filter_with)}
+        frame = {col_name: self.df[col_to_split].apply(filter_tokens, args=(fil_arr,)) for col_name, fil_arr in zip(new_cols_name, filter_with)}
         if expand:
             self.df = pd.concat([self.df, pd.DataFrame(frame)], axis=1)
             return self
@@ -418,7 +424,7 @@ class DataCleaner():
         - `salary_pay` is updated as a combined "salary_min-salary_max" string.
         """
 
-        salary_range = _extract_salary(self.df[extract_salary_from])
+        salary_range = extract_salary(self.df[extract_salary_from])
         salary_range = self.df["salary_pay"].fillna(salary_range)
         salary_range = salary_range.fillna(pd.NA)
         salary_range = salary_range.replace({'–':'-', '[,.]':'', '[Kk]':'000'}, regex=True)
