@@ -13,7 +13,7 @@ tokenizer = MWETokenizer(mwes=mwes, separator=' ')
 
 
 
-def _tokenize_words(text: str) -> Optional[np.ndarray]:
+def tokenize_words(text: str) -> Optional[np.ndarray]:
     """
     Tokenizes a string into lowercase words after removing extra spaces.
 
@@ -40,7 +40,7 @@ def _tokenize_words(text: str) -> Optional[np.ndarray]:
 
 
 
-def _normalize_tokens(arr: np.ndarray, repl: Optional[dict[str, str]]= None) -> Optional[np.ndarray]:
+def normalize_tokens(arr: np.ndarray, repl: Optional[dict[str, str]]= None) -> Optional[np.ndarray]:
     if not isinstance(arr, np.ndarray):
         return pd.NA
     if repl is None:
@@ -52,7 +52,7 @@ def _normalize_tokens(arr: np.ndarray, repl: Optional[dict[str, str]]= None) -> 
 
 
 
-def _filter_tokens(arr1: np.ndarray, arr2: np.ndarray) -> Optional[np.ndarray]:
+def filter_tokens(arr1: np.ndarray, arr2: np.ndarray) -> Optional[np.ndarray]:
     """
     Filters tokens in `arr1` based on matches in `arr2`.
 
@@ -78,7 +78,7 @@ def _filter_tokens(arr1: np.ndarray, arr2: np.ndarray) -> Optional[np.ndarray]:
 
 
 
-def _extract_salary(extract_from: pd.Series, salary_pattern: Optional[str] = None) -> pd.Series:
+def extract_salary(extract_from: pd.Series, salary_pattern: Optional[str] = None) -> pd.Series:
     """
     Extracts salary ranges from a specified column.
 
