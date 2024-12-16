@@ -4,3 +4,4 @@ matplotlib
 dvc
 kaggle
 nltk
+streamlit
