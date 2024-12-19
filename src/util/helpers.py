@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import nltk
 from nltk.tokenize import word_tokenize, MWETokenizer
-from src._util.keywords import mwes
-from src._util.keywords import tokens_to_normalize
+from src.util.keywords import mwes
+from src.util.keywords import tokens_to_normalize
 
 nltk.download('punkt_tab')
 
@@ -78,7 +78,7 @@ def filter_tokens(arr1: np.ndarray, arr2: np.ndarray) -> Optional[np.ndarray]:
 
 
 
-def extract_salary(extract_from: pd.Series, salary_pattern: Optional[str] = None) -> pd.Series:
+def extract_salary(extract_from: pd.Series, salary_pattern = None):
     """
     Extracts salary ranges from a specified column.
 
@@ -98,44 +98,24 @@ def extract_salary(extract_from: pd.Series, salary_pattern: Optional[str] = None
     temp_series = extract_from.copy()
     temp_series = temp_series.str.replace(r'\n', ' ', regex=True).str.replace(r'\s+', ' ', regex=True)
     if salary_pattern is None:
-        number_pattern = r'\d{1,3}(?:,\d{3})?(?:[Kk])?'  # Matches numbers with optional commas or 'K|k'
+        number_pattern = r'\d{1,3}(?:,\d{3})?(?:\.\d+)?[Kk]?'  # Matches numbers with optional commas or 'K|k'
         salary_pattern = fr'({number_pattern})\s?[–-]\s?({number_pattern})'  # Matches salary ranges
     salary = temp_series.str.extract(salary_pattern, flags=re.IGNORECASE)
-    formatted_salary = salary.apply(
-        lambda x: f"{x[0]}-{x[1]}" if pd.notna(x[0]) and pd.notna(x[1]) else pd.NA, 
-        axis=1
-    )
-    return formatted_salary
+    salary = salary.replace(',', '', regex=True)
+    salary = salary.rename({0:'min', 1:'max'}, axis=1)
+    salary['min'] = salary['min'].apply(convert_salary_to_number)
+    salary['max'] = salary['max'].apply(convert_salary_to_number)
+    return salary
 
 
+def convert_salary_to_number(salary_str):
+    if pd.isna(salary_str):
+        return np.nan
+    salary_str = salary_str.lower()
+    if ('k' in salary_str) and (len(salary_str) > 4):
+        salary_str = salary_str[:-1]
+    if 'k' in salary_str:
+         return float(salary_str[:-1]) * 1000
+    return float(salary_str)
 
-def truncate_max_salary(x: Optional[str]) -> Optional[str]:
-    if pd.isna(x):
-        return pd.NA
-    if len(x)<5:
-        return pd.NA
-    if len(x)>6:
-        return x[:6]
-    else:
-        return x
 
-
-   
-def truncate_min_salary(x: Optional[str]) -> Optional[str]:
-    if pd.isna(x):
-        return pd.NA
-    if len(x)>6:
-        return x[:6]
-    else:
-        return x
-   
-   
-   
-     
-def clean_min_salary(x: Optional[str], y: Optional[str]) -> Optional[str]:
-    if pd.isna(x) or pd.isna(y):
-        return pd.NA
-    if len(x) < 4 and len(y) > 4:
-        return x+'000'
-    else:
-        return x

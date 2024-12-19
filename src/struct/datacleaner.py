@@ -2,17 +2,14 @@ import logging
 from typing import Optional, Union
 import numpy as np
 import pandas as pd
-from src._error.errors import DataCollectorError, DataCleanerError
-from src._util.helpers import (
+from src.error.errors import DataCollectorError, DataCleanerError
+from src.util.helpers import (
     tokenize_words,
     normalize_tokens,
     filter_tokens,
     extract_salary,
-    truncate_max_salary,
-    truncate_min_salary,
-    clean_min_salary
 )
-from src._util.keywords import (
+from src.util.keywords import (
     all_keywords,
     technical_tokens_arr, 
     softskills_tokens_arr,
@@ -130,7 +127,7 @@ class DataCleaner():
             cols = [
                 "index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", 
                 "search_location", "description_tokens", 'salary', 'salary_rate', 'salary_standardized',
-                'salary_avg', 'salary_hourly', 'salary_yearly', 'salary_min', 'salary_max'
+                'salary_pay', 'salary_hourly', 'salary_yearly'
                 ]
         self.df = self.df.drop(columns=cols, **kwargs)
         return self

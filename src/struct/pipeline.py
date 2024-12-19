@@ -1,8 +1,8 @@
 from typing import Optional
 import os
 import pandas as pd
-from src._struct.datacollector import KaggleDataCollection
-from src._struct.datacleaner import DataCleaner
+from src.struct.datacollector import KaggleDataCollection
+from src.struct.datacleaner import DataCleaner
 
 class DataPipeline():
     """
@@ -86,7 +86,7 @@ class DataPipeline():
             .filter_data_analyst_jobs()
             .clean_location(fillna_val="Others")
             .clean_datetime("date_time")
-            .clean_via()
+            .clean_via(fillna_val='Others')
             .clean_schedule_type()
             .clean_work_from_home()
             .clean_salary(extract_salary_from="description")
