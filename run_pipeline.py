@@ -1,6 +1,6 @@
 from pathlib import Path
 import pandas as pd
-from src._struct.pipeline import DataPipeline
+from src.struct.pipeline import DataPipeline
 
 pipeline = DataPipeline(
         kaggle_dataset="lukebarousse/data-analyst-job-postings-google-search",
@@ -12,7 +12,7 @@ data = pd.read_parquet(file)
 # Saving data into sub frames for working streamlit efficiently
 save_to = Path('./data-subframes')
 save_to.mkdir(parents=True, exist_ok=True)
-salary = data[['salary_pay', 'salary_min', 'salary_max', 'salary_average']]
+salary = data[['salary_min', 'salary_max', 'salary_avg']]
 tokens = data[['description_tokens', 'technical_tokens', 'softskills_tokens', 'education_tokens']]
 cols_to_drop = list(salary.columns) + list(tokens.columns)
 jobs = data.drop(columns=cols_to_drop)
