@@ -109,6 +109,19 @@ def extract_salary(extract_from: pd.Series, salary_pattern = None):
 
 
 def convert_salary_to_number(salary_str):
+    """
+    Convert a salary string to a numeric value.
+
+    Parameters
+    ----------
+    salary_str : str
+        The salary string, which may include 'K' for thousands.
+
+    Returns
+    -------
+    float
+        The numeric salary value. Returns NaN if the input is NaN.
+    """
     if pd.isna(salary_str):
         return np.nan
     salary_str = salary_str.lower()
@@ -119,3 +132,65 @@ def convert_salary_to_number(salary_str):
     return float(salary_str)
 
 
+
+def fix_minimum_salary(minimum, maximum):
+    """
+    Adjust the minimum salary based on contextual rules.
+
+    Parameters
+    ----------
+    minimum : float
+        The minimum salary value.
+    maximum : float
+        The maximum salary value.
+
+    Returns
+    -------
+    float
+        The corrected minimum salary. Returns NaN if adjustments are invalid.
+    """
+    if pd.isna(minimum) and pd.isna(maximum):
+        return np.nan
+    if pd.isna(minimum) and pd.notna(maximum):
+        minimum = maximum
+    if minimum < 1000 and maximum > 10000:
+        if minimum < 10:
+            minimum = minimum * 10000
+        else:
+            minimum = minimum * 1000
+    if minimum <= 10000:
+        return np.nan
+    return minimum
+  
+  
+
+def fix_maximum_salary(minimum, maximum):
+    """
+    Adjust the maximum salary based on contextual rules.
+
+    Parameters
+    ----------
+    minimum : float
+        The minimum salary value.
+    maximum : float
+        The maximum salary value.
+
+    Returns
+    -------
+    float
+        The corrected maximum salary. Returns NaN if adjustments are invalid.
+    """
+    if pd.isna(minimum) and pd.isna(maximum):
+        return np.nan
+    if pd.isna(maximum) and pd.notna(minimum):
+        maximum = minimum 
+    if maximum < 1000 and minimum > 10000:
+        if maximum < 10:
+            maximum = maximum * 10000
+        else:
+            maximum = maximum * 1000
+    if maximum < minimum:
+            maximum = minimum
+    if maximum <= 20000:
+        return np.nan
+    return maximum

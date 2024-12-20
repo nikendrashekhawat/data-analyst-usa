@@ -8,6 +8,8 @@ from src.util.helpers import (
     normalize_tokens,
     filter_tokens,
     extract_salary,
+    fix_maximum_salary,
+    fix_minimum_salary
 )
 from src.util.keywords import (
     all_keywords,
@@ -126,8 +128,8 @@ class DataCleaner():
         if cols is None:
             cols = [
                 "index", "thumbnail", "posted_at", "job_id", "search_term", "commute_time", 
-                "search_location", "description_tokens", 'salary', 'salary_rate', 'salary_standardized',
-                'salary_pay', 'salary_hourly', 'salary_yearly'
+                "search_location", "description_tokens", 'salary', 'salary_rate', 
+                'salary_standardized', 'salary_pay', 'salary_hourly', 'salary_yearly'
                 ]
         self.df = self.df.drop(columns=cols, **kwargs)
         return self
@@ -393,7 +395,7 @@ class DataCleaner():
 
 
    
-    def clean_salary(self, extract_salary_from: str, expand_range: bool=True):
+    def clean_salary(self, extract_salary_from: str):
         """
         Extracts and cleans salary ranges from a specified column. And fill the
         column `salary_pay` with extracted values and <NA> for missing values.
@@ -402,10 +404,6 @@ class DataCleaner():
         ----------
         extract_salary_from : str
             Column name to extract salary from.
-
-        expand_range : bool, optional
-            Defaults to True. If True, extract `min`, `max`, `average` and 
-            adds numeric salary columns to dataframe.
             
 
         Returns
@@ -420,25 +418,13 @@ class DataCleaner():
         - Invalid salary values are set to `pd.NA`.
         - `salary_pay` is updated as a combined "salary_min-salary_max" string.
         """
-
         salary_range = extract_salary(self.df[extract_salary_from])
-        salary_range = self.df["salary_pay"].fillna(salary_range)
-        salary_range = salary_range.fillna(pd.NA)
-        salary_range = salary_range.replace({'–':'-', '[,.]':'', '[Kk]':'000'}, regex=True)
-        salary_range = salary_range.str.split('-', expand=True)
-        salary_range = salary_range.rename({0:'salary_min', 1:'salary_max'}, axis=1)
-        salary_range['salary_max'] = salary_range['salary_max'].apply(truncate_max_salary)
-        salary_range['salary_min'] = salary_range['salary_min'].apply(truncate_min_salary)
-        salary_range['salary_min'] = salary_range['salary_min'].combine(salary_range['salary_max'], clean_min_salary)
-        self.df['salary_pay'] = salary_range['salary_min'] + '-' + salary_range['salary_max']
-        if expand_range:
-            salary_range['salary_max'] = pd.to_numeric(salary_range['salary_max'])
-            salary_range['salary_min'] = pd.to_numeric(salary_range['salary_min'])
-            salary_range['salary_average'] = (salary_range['salary_max'] + salary_range['salary_min']) / 2 
-            self.df = pd.concat([self.df, salary_range], axis=1)
-            return self
+        self.df['salary_min'] = self.df['salary_min'].fillna(salary_range['min'])
+        self.df['salary_max'] = self.df['salary_max'].fillna(salary_range['max'])
+        self.df['salary_min'] = self.df['salary_min'].combine(self.df['salary_max'], fix_minimum_salary)
+        self.df['salary_max'] = self.df['salary_max'].combine(self.df['salary_min'], fix_maximum_salary)
+        self.df['salary_avg'] = (self.df['salary_min'] + self.df['salary_max']) / 2
         return self
-
 
 
 
