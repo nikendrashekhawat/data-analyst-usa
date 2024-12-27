@@ -122,7 +122,7 @@ technical_tokens = [
     'descriptive analytics',
     'diagnostic analytics',
     'prescriptive analytics',
-    'ad hoc',
+    'ad hoc reports',
     'data lifecycle',
     'machine learning',
     'data mining',

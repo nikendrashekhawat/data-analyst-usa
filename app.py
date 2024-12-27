@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 from strm.st_extends import count_tokens
 from strm.st_extends import plot_horizontal
+
 st.set_page_config(page_title="Data Analyst Jobs (USA)", layout="wide")
 
 st.title("Data Analyst Jobs - USA")
@@ -33,8 +33,13 @@ education = count_tokens(skills["education_tokens"]).sort_values('count', ascend
 fig1 = plot_horizontal(
     technical_skills['tokens'], 
     technical_skills['percentage'],
-    xlabel='Percentage')
-st.pyplot(fig1)
+    xlabel='Percentage',
+    cmap='cool',
+    xlim=(0,80),
+    bar_label=True,
+    figsize=(6,3.5)
+    )
+st.pyplot(fig1, use_container_width=False)
 
 st.markdown("<br><br>", unsafe_allow_html=True)
             
@@ -43,7 +48,8 @@ with col_fig2:
     fig2 = plot_horizontal(
         soft_skills['tokens'], 
         soft_skills['percentage'],
-        xlabel='Percentage')
+        xlabel='Percentage',
+        cmap='plasma')
     st.pyplot(fig2)
 with col_fig3:
     fig3 = plot_horizontal(
