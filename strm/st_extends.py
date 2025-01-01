@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import plotly.express as px
 
 
 def count_tokens(series) -> pd.DataFrame:
@@ -40,9 +39,4 @@ def plot_horizontal(y, x, xlabel=None, ylabel=None, color=None, title=None, subt
         spine.set_color('white')
     ax.tick_params(labelsize=5, bottom=False, left=False, pad=0)
     fig.suptitle(title, fontsize=9, fontweight='bold')
-    return fig
-
-
-def plot_pie(data, values, names, title, **kwargs):
-    fig = px.pie(data, values=values, names=names, title=title, **kwargs)
     return fig
