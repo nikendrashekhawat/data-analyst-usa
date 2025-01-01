@@ -6,6 +6,7 @@ technical_tokens = [
     'kanban',
     'jira',
     'excel',
+    'vba',
     'sql',
     'python',
     'r',
