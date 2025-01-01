@@ -13,7 +13,6 @@ etc/
 **/__pycache__
 __pycache__/
 notebook/
-dataset/*
+dataset/*.csv
 .idea
 */*.csv
-data-subframes/
