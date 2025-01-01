@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-from strm.st_extends import count_tokens
-from strm.st_extends import plot_horizontal
+from strm.st_extends import count_tokens, plot_horizontal
 
 st.set_page_config(page_title="Data Analyst Jobs (USA)", layout='wide')
 
